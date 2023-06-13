@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "7751ac9d515ac774",
+        "id": "fab33ff485128092",
         "type": "tabs",
         "children": [
           {
-            "id": "146d92296e46f824",
+            "id": "2d4fe6762a5f6d6d",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Memory.md",
+                "file": "Physical Memory Management.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Memory.md",
+                "file": "Physical Memory Management.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Memory.md",
+                "file": "Physical Memory Management.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Memory.md"
+                "file": "Physical Memory Management.md"
               }
             }
           }
@@ -146,9 +146,12 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "146d92296e46f824",
+  "active": "2d4fe6762a5f6d6d",
   "lastOpenFiles": [
-    "System Overview and Features.md",
-    "Memory.md"
+    "2023-06-13.md",
+    "Physical Memory Management.md",
+    "Error Codes.md",
+    "Untitled.canvas",
+    "System Overview and Features.md"
   ]
 }
