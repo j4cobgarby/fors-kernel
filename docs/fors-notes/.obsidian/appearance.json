@@ -1,7 +1,8 @@
 {
-  "accentColor": "#b39a1e",
+  "accentColor": "#9984a4",
   "theme": "obsidian",
   "interfaceFontFamily": "Noto Sans Mono",
   "monospaceFontFamily": "Noto Sans Mono",
-  "nativeMenus": true
+  "nativeMenus": true,
+  "baseFontSize": 13
 }

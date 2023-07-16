@@ -1,0 +1,7 @@
+.cache
+/build
+/kernel/build
+/kernel/fors.elf
+fors.iso
+compile_commands.json
+docs/fors-notes/.obsidian
