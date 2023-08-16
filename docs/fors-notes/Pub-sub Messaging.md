@@ -12,6 +12,7 @@ Some possible topic names are:
  - `a`
  - `__..`
  - `pstatus/0`
+
 And some invalid ones are:
  - `/` ('/' is only valid as a separator between two strings)
  - `twitter_feed/@j4cobgarby` ('@' is not allowed)
