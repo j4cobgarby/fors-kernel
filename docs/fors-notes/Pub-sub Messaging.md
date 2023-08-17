@@ -39,6 +39,8 @@ After the process no longer needs the publisher, `delpub()` can be called, which
 Usage example:
 
 ```c
+// Publish two messages to two different topics.
+
 int pub_a, pub_b;
 
 const char *msg_1 = "Hello, world!";
@@ -58,6 +60,33 @@ int main(int argc, char **argv) {
 
 	delpub(pub_a);
 	delpub(pub_b);
+
+	return 0;
 }
 ```
 ## Subscribers
+
+```c
+// Create two subscribers attached to the same callback function
+
+int sub_a, sub_b;
+
+void callback(int pid, void *dat, int n) {
+	printf("Process %d said '%s'\n", pid, dat);
+}
+
+int main(int argc, char **argv) {
+	if ((sub_a = mksub("topic_a")) < 0) {
+		return -1;
+	}
+
+	if ((sub_b = mksub("sub/topic")) < 0) {
+		return -1;
+	}
+
+	subscribe(sub_a, callback, NULL);
+	subscribe(sub_b, callback, NULL);
+
+	while (1);
+}
+```
