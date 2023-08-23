@@ -12,9 +12,7 @@ The virtual memory system handles:
 
 Each supported architecture may deal with virtual (and physical) memory in different ways. Here is the set of constants, functions, and types which all architectures must define:
 
- - The **constant** `__ARCH__PAGE_SIZE` should be defined as the size (in bytes) of pages of memory, for example `#define __ARCH_PAGE_SIZE 4096`.
- - The **type** `physaddr_t` should be defined as an integer type at least large enough to represent any physical address, and also negative numbers (for error codes), for example `typedef intptr_t physaddr_t`.
- - The **type** `virtaddr_t` should be defined as an integer type at least large enough to represent any vitual address, and also negative numbers (for error codes), for example `typedef intptr_t virtaddr_t`.
+ - The **constant** `ARCH_PAGE_SIZE` should be defined as the size (in bytes) of pages of memory, for example `#define ARCH_PAGE_SIZE 4096`.
    
  -  `int vmap(int pid, physaddr_t pa, virtaddr_t va, size_t size);` 
    `pa`: The physical address of the beginning of the region to map. This should be page-aligned.
