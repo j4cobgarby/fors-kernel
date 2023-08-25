@@ -1,13 +1,15 @@
 #ifndef __INCLUDE_MEMORY_H__
 #define __INCLUDE_MEMORY_H__
 
+void arch_init_memory();
+
 /* Physical memory functions */
 
 void *pfalloc_one();
-void *pfalloc_consecutive(int n);
+void *pfalloc_consecutive(unsigned int n);
 
 void pffree_one(void *pf);
-void pffree_consecutive(void *pf_first, int n);
+void pffree_consecutive(void *pf_first, unsigned int n);
 
 /* Virtual memory functions */
 

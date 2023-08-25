@@ -23,9 +23,11 @@ CFLAGS = -Wall -Wextra  	\
     -mno-red-zone        	\
     -mcmodel=kernel      	\
     -I.                  	\
+    -Isrc/include           \
     -Wno-unused-parameter	\
     -Wno-unused-function 	\
     -D__ARCH_$(ARCH)__   	\
+    -g                      \
 
 LDFLAGS = \
 	-nostdlib -static		\
@@ -34,7 +36,7 @@ LDFLAGS = \
 	-T linker.ld			\
 	-no-pie
 
-CFILES = $(shell find src -type f -name '*.c')
+CFILES = $(shell find src/generic -type f -name '*.c') $(shell find src/arch/$(ARCH) -type f -name '*.c')
 ASFILES = $(shell find src -type f -name '*.S')
 OBJS = $(addprefix $(BUILD)/, $(CFILES:.c=.o) $(ASFILES:.S=.o))
 

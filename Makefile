@@ -1,6 +1,6 @@
 IMG_PREF = fors
 ELF_EXE  = kernel/fors.elf
-ARCH	 = X64
+ARCH	 = x64
 BUILD	 = build
 export
 
@@ -9,7 +9,11 @@ all: $(IMG_PREF).iso
 
 .PHONY: run
 run: $(IMG_PREF).iso
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $< -boot d
+	qemu-system-x86_64 -M q35 -m 2G -cdrom $< -boot d -serial stdio -display gtk
+
+.PHONY: debug
+debug: $(IMG_PREF).iso
+	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $< -boot d -serial stdio -display gtk
 
 .PHONY: kernel
 kernel:
