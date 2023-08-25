@@ -121,7 +121,6 @@ void *pfalloc_consecutive(unsigned int n) {
     unsigned int so_far;
 
     if (!frame_list) {
-        printk("Failure A\n");
         return NULL;
     } else {
         curr = set_start->next;
@@ -137,16 +136,13 @@ void *pfalloc_consecutive(unsigned int n) {
     while (curr) {
         // If the current frame is immediately following the one before it, then increase the number of consecutive frames.
         // If it's not, then reset the consecutive frames counter and the start frame of the current set.
-        //printk("Comparing %x to %x\n", (void*)curr, (void*)(curr->prev) + ARCH_PAGE_SIZE);
         if ((void*)curr == (void*)curr->prev + ARCH_PAGE_SIZE) {
             so_far++;
 
             if (so_far == n) {
-                printk("Found run of %d\n", n);
                 break;
             }
         } else {
-            printk("Hit gap at so_far=%d\n", so_far);
             set_start = curr;
             so_far = 1;
         }
@@ -161,20 +157,18 @@ void *pfalloc_consecutive(unsigned int n) {
         } else {
             frame_list = curr->next;
         }
-        
+
         if (curr->next) curr->next->prev = set_start->prev;
 
         free_frames -= n;
 
         return set_start;
     } else {
-        printk("Failure B (so_far = %d)\n", so_far);
         return NULL; // We couldn't find a long enough run
     }
 }
 
 void pffree_one(void *pf) {
-    printk("Freeing @ %x\n", pf);
     frame_insert(pf);
 }
 

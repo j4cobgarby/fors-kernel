@@ -18,21 +18,15 @@ void _start(void) {
     void *f2 = pfalloc_one();
     void *f3 = pfalloc_one();
 
-    printk("Allocated frames:\n%x\n%x\n%x\n", f1, f2, f3);
-
     pffree_one(f1);
     pffree_one(f2);
     pffree_one(f3);
 
-    printk("Freed 3 blocks.\n");
-
     f1 = pfalloc_consecutive(10);
-
-    printk("Allocated 10 blocks starting at %x\n", f1);
+    f2 = pfalloc_consecutive(20);
 
     pffree_consecutive(f1, 10);
-
-    printk("Freed 10 blocks.\n");
+    pffree_consecutive(f2, 20);
     
     for (;;) {
         __asm__("hlt");
