@@ -4,4 +4,6 @@
 
 void arch_init_memory() {
     x64_init_physical_memory();
+    x64_init_virtual_memory();
+    x64_init_gdt();
 }

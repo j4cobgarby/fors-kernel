@@ -36,9 +36,12 @@ LDFLAGS = \
 	-T linker.ld			\
 	-no-pie
 
+NASMFLAGS += \
+    -f elf64
+
 CFILES = $(shell find src/generic -type f -name '*.c') $(shell find src/arch/$(ARCH) -type f -name '*.c')
-ASFILES = $(shell find src -type f -name '*.S')
-OBJS = $(addprefix $(BUILD)/, $(CFILES:.c=.o) $(ASFILES:.S=.o))
+NASMFILES := $(shell find src/generic -type f -name '*.asm') $(shell find src/arch/$(ARCH) -type f -name '*.asm')
+OBJS = $(addprefix $(BUILD)/, $(CFILES:.c=.o) $(NASMFILES:.asm=.o))
 
 .PHONY: all
 all: $(KERNEL)
@@ -53,9 +56,9 @@ $(BUILD)/src/%.o: $(SRC)/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/src/%.o: $(SRC)/%.S
+$(BUILD)/src/%.o: $(SRC)/%.asm
 	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	nasm $(NASMFLAGS) $< -o $@
 
 .PHONY: clean
 clean:

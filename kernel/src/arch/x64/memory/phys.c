@@ -17,7 +17,6 @@ static void update_cons(struct frame_marker *from) {
     struct frame_marker *curr = from->prev;
 
     while (curr && curr->next == curr + ARCH_PAGE_SIZE) {
-        curr->cons = curr->next->cons + 1;
         curr = curr->prev;
     }
 }
