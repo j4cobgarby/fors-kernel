@@ -4,19 +4,16 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "limine.h"
+
 #define ARCH_PAGE_SIZE 4096 // The size in bytes of page frames and virtual pages
+
+extern volatile struct limine_memmap_request memmap_req;
 
 struct frame_marker {
     struct frame_marker *next;
     struct frame_marker *prev;
 };
-
-void x64_init_physical_memory();
-void x64_init_virtual_memory();
-void x64_init_gdt();
-
-extern void load_gdt(void);
-extern void reload_seg_registers(void);
 
 /* Memory Structures */
 
@@ -53,7 +50,7 @@ union cr3_image {
         unsigned int pcd : 1; // Page-level cache disable (see SDM 4.9.2)
         unsigned int _1 : 7;
         unsigned long int pml4_address : 40;
-    } element;
+    };
 };
 static_assert(sizeof(union cr3_image) == 8, "");
 
@@ -79,7 +76,7 @@ static_assert(sizeof(union paging_structure) == 8, "");
 
 typedef union paging_structure pml4_entry_t; // References a page directory pointer table
 typedef union paging_structure pdpt_entry_t; // References a page directory
-typedef union paging_structure pd_entry_t; // References a page table
+typedef union paging_structure pdt_entry_t; // References a page table
 
 union page_table_entry {
     uint64_t as_u64;
@@ -111,6 +108,17 @@ typedef union page_table_entry pt_entry_t;
 #define EXTRACT_PT_INDEX(vaddr)     ((vaddr >> 12) & 0x1ff)
 #define EXTRACT_PAGE_OFFSET(vaddr)  (vaddr & 0xfff)
 
+struct page_map_settings {
+    unsigned int writable;
+    unsigned int user_accessable;
+    unsigned int pagelvl_write_through;
+    unsigned int pagelvl_cache_disable;
+    unsigned int hlat_restart;
+    unsigned int xd;
+    unsigned int global;
+    unsigned int pat;
+};
+
 struct __attribute__((packed)) gdt_descriptor_long {
     uint16_t limit_0_15;
     uint16_t base_0_15;
@@ -137,16 +145,27 @@ struct __attribute__((packed)) gdtr_image {
     struct gdt_descriptor_long *base;
 };
 
-#define SEG_AB_ACCESSED 1 << 0
-#define SEG_AB_RW       1 << 1
-#define SEG_AB_DC       1 << 2
-#define SEG_AB_EXEC     1 << 3  // If set, this segment is executable.
-#define SEG_AB_CODE_DATA 1 << 4 // If set, this segment is code/data, otherwise it's some sort of system segment
-#define SEG_AB_DPL(n)   ((n & 0x3) << 5)
-#define SEG_AB_PRESENT  1 << 7 // Must be set for any valid segment
+#define SEG_AB_ACCESSED     1 << 0
+#define SEG_AB_RW           1 << 1
+#define SEG_AB_DC           1 << 2
+#define SEG_AB_EXEC         1 << 3  // If set, this segment is executable.
+#define SEG_AB_CODE_DATA    1 << 4 // If set, this segment is code/data, otherwise it's some sort of system segment
+#define SEG_AB_DPL(n)       ((n & 0x3) << 5)
+#define SEG_AB_PRESENT      1 << 7 // Must be set for any valid segment
 
 #define SEG_FLAG_LONG       1 << 1 // Set for a 64 bit code segment
 #define SEG_FLAG_DB         1 << 2 // Size of segment, set for 32 bit
 #define SEG_FLAG_4K_BLOCKS  1 << 3
+
+// Map the virtual page 'virt' to the page frame at 'phys'.
+void map_page(pml4_entry_t *pml4_table, uint64_t phys, uint64_t virt, struct page_map_settings flags);
+
+void x64_init_physical_memory();
+void x64_init_virtual_memory();
+void x64_init_gdt();
+
+// These two implemented in assembly
+extern void load_gdt(void);
+extern void reload_seg_registers(void);
 
 #endif /* __INCLUDE_X64_MEMORY_H__ */
