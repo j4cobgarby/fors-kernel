@@ -6,7 +6,7 @@ CC = gcc
 LD = ld
 
 CFLAGS = -Wall -Wextra  	\
-	-std=c11			 	\
+	-std=c2x			 	\
 	-ffreestanding		 	\
 	-fno-stack-protector 	\
     -fno-stack-check     	\
