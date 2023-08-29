@@ -1,6 +1,7 @@
 #include "fors/printk.h"
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define PRINTK_I64_BUF_LEN 20
 #define PRINTK_U64_HEX_LEN 16
@@ -21,7 +22,7 @@ void printctrl_unset(unsigned int unsetflags) {
 
 static void print_i64(int64_t x) {
     char buf[PRINTK_I64_BUF_LEN] = {0};
-    int leading_done = 0;
+    bool leading_done = false;
 
     if ((int64_t)x < 0) {
         kputc('-');
@@ -36,7 +37,7 @@ static void print_i64(int64_t x) {
 
     for (int i = 0; i < PRINTK_I64_BUF_LEN; i++) {
         if (buf[i]) {
-            leading_done = 1;
+            leading_done = true;
         }
 
         if (printk_flags & PRINTCTRL_LEADING_DEC || leading_done || 
@@ -48,7 +49,7 @@ static void print_i64(int64_t x) {
 
 static void print_u64_hex(uint64_t x) {
     static char hex_digits[] = "0123456789abcdef";
-    int leading_done = 0;
+    bool leading_done = false;
 
     if (printk_flags & PRINTCTRL_RADIX_PREFIX) {
         kputs("0x");
@@ -58,13 +59,13 @@ static void print_u64_hex(uint64_t x) {
         int ind = (x >> 4 * i) & 0xf;
 
         if (ind) {
-            leading_done = 1;
+            leading_done = true;
         }
 
         if (printk_flags & PRINTCTRL_LEADING_HEX || leading_done || i == 0) {
             if (printk_flags & PRINTCTRL_SPACERS && i != PRINTK_U64_HEX_LEN - 1
                     && (i+1) % 4 == 0) {
-                kputc(' ');
+                kputc('\'');
             }
             kputc(hex_digits[ind]);
         }
