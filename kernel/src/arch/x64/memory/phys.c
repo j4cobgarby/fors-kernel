@@ -5,11 +5,6 @@
 
 #include <stdlib.h>
 
-volatile struct limine_memmap_request memmap_req = {
-    .id = LIMINE_MEMMAP_REQUEST,
-    .revision = 0,
-};
-
 static struct frame_marker *frame_list = NULL;
 static unsigned long int free_frames = 0;
 
