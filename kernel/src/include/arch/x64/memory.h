@@ -63,22 +63,36 @@ union paging_structure {
         unsigned int pwt : 1;
         unsigned int pcd : 1;
         unsigned int accessed : 1;
-        unsigned int _0: 1;
+        unsigned int : 1;
         unsigned int zero0: 1;
-        unsigned int _1 : 3;
+        unsigned int : 3;
         unsigned int hlat_restart : 1;
         unsigned long int target_physaddr : 40;
-        unsigned int _3 : 11;
+        unsigned int : 11;
         unsigned int xd : 1;
     };
 };
 static_assert(sizeof(union paging_structure) == 8, "");
 
+// Paging structure entry macros
 #define PSE_PTR(val) (val & 0x000ffffffffff000)
+#define PSE_PRESENT     1 << 0
+#define PSE_WRITABLE    1 << 1
+#define PSE_USER        1 << 2
+#define PSE_PWT         1 << 3
+#define PSE_PCD         1 << 4
+#define PSE_ACCESSED    1 << 5
+#define PSE_DIRTY       1 << 6
+#define PSE_PAGESIZE    1 << 7
+#define PSE_PAT         1 << 7
+#define PSE_GLOBAL      1 << 8
+#define PSE_HLATRESTART 1 << 11
+#define PSE_PT_PAT      1 << 12 // PAT bit is in a different place specifically for page table entries
+#define PSE_XD          1 << 63
 
-typedef union paging_structure pml4_entry_t; // References a page directory pointer table
-typedef union paging_structure pdpt_entry_t; // References a page directory
-typedef union paging_structure pdt_entry_t; // References a page table
+typedef uint64_t pml4_entry_t; // References a page directory pointer table
+typedef uint64_t pdpt_entry_t; // References a page directory
+typedef uint64_t pdt_entry_t; // References a page table
 
 union page_table_entry {
     uint64_t as_u64;
@@ -102,7 +116,7 @@ union page_table_entry {
 };
 static_assert(sizeof(union page_table_entry) == 8, "");
 
-typedef union page_table_entry pt_entry_t;
+typedef uint64_t pt_entry_t;
 
 #define EXTRACT_PML4_INDEX(vaddr)   ((vaddr >> 39) & 0x1ff)
 #define EXTRACT_PDPT_INDEX(vaddr)   ((vaddr >> 30) & 0x1ff)
