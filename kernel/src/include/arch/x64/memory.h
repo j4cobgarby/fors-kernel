@@ -74,6 +74,8 @@ union paging_structure {
 };
 static_assert(sizeof(union paging_structure) == 8, "");
 
+#define PSE_PTR(val) (val & 0x000ffffffffff000)
+
 typedef union paging_structure pml4_entry_t; // References a page directory pointer table
 typedef union paging_structure pdpt_entry_t; // References a page directory
 typedef union paging_structure pdt_entry_t; // References a page table
@@ -159,6 +161,7 @@ struct __attribute__((packed)) gdtr_image {
 
 // Map the virtual page 'virt' to the page frame at 'phys'.
 void map_page(pml4_entry_t *pml4_table, uint64_t phys, uint64_t virt, struct page_map_settings flags);
+int map_lookup(pml4_entry_t *pml4_table, uint64_t virt, uint64_t *phys_ret);
 
 void x64_init_physical_memory();
 void x64_init_virtual_memory();
