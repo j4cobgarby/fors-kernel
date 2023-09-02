@@ -42,37 +42,7 @@ static_assert(sizeof(union segment_selector) == 2, "");
 #define TABLE_GDT 0
 #define TABLE_LDT 1
 
-union cr3_image {
-    uint64_t as_u64;
-    struct __attribute__((packed)) {
-        unsigned int _0 : 3;
-        unsigned int pwt : 1; // Page-level write-through (see SDM 4.9.2)
-        unsigned int pcd : 1; // Page-level cache disable (see SDM 4.9.2)
-        unsigned int _1 : 7;
-        unsigned long int pml4_address : 40;
-    };
-};
-static_assert(sizeof(union cr3_image) == 8, "");
-
-union paging_structure {
-    uint64_t as_u64;
-    struct __attribute__((packed)) {
-        unsigned int present : 1;
-        unsigned int writable : 1;
-        unsigned int user_accessable : 1;
-        unsigned int pwt : 1;
-        unsigned int pcd : 1;
-        unsigned int accessed : 1;
-        unsigned int : 1;
-        unsigned int zero0: 1;
-        unsigned int : 3;
-        unsigned int hlat_restart : 1;
-        unsigned long int target_physaddr : 40;
-        unsigned int : 11;
-        unsigned int xd : 1;
-    };
-};
-static_assert(sizeof(union paging_structure) == 8, "");
+typedef uint64_t cr3_image;
 
 // Paging structure entry macros
 #define PSE_PTR(val) (val & 0x000ffffffffff000)
@@ -94,46 +64,18 @@ typedef uint64_t pml4_entry_t; // References a page directory pointer table
 typedef uint64_t pdpt_entry_t; // References a page directory
 typedef uint64_t pdt_entry_t; // References a page table
 
-union page_table_entry {
-    uint64_t as_u64;
-    struct __attribute__((packed)) {
-        unsigned int present : 1;
-        unsigned int writable : 1;
-        unsigned int user_accessable : 1;
-        unsigned int pwt : 1;
-        unsigned int pcd : 1;
-        unsigned int accessed : 1;
-        unsigned int dirty: 1;
-        unsigned int pat: 1;
-        unsigned int global : 1;
-        unsigned int _0 : 2;
-        unsigned int hlat_restart : 1;
-        unsigned long int target_physaddr : 40;
-        unsigned int _3 : 7;
-        unsigned int protection_key : 4;
-        unsigned int xd : 1;
-    };
-};
-static_assert(sizeof(union page_table_entry) == 8, "");
-
 typedef uint64_t pt_entry_t;
+
+#define EXTRACT_4K_PAGE_OFFSET(vaddr) (vaddr & 0xfff)
+#define EXTRACT_2M_PAGE_OFFSET(vaddr) (vaddr & 0x1fffff)
+#define EXTRACT_1G_PAGE_OFFSET(vaddr) (vaddr & 0x3fffffff)
 
 #define EXTRACT_PML4_INDEX(vaddr)   ((vaddr >> 39) & 0x1ff)
 #define EXTRACT_PDPT_INDEX(vaddr)   ((vaddr >> 30) & 0x1ff)
 #define EXTRACT_PDT_INDEX(vaddr)    ((vaddr >> 21) & 0x1ff)
 #define EXTRACT_PT_INDEX(vaddr)     ((vaddr >> 12) & 0x1ff)
-#define EXTRACT_PAGE_OFFSET(vaddr)  (vaddr & 0xfff)
+#define EXTRACT_PAGE_OFFSET(vaddr)  EXTRACT_4K_PAGE_OFFSET(vaddr)
 
-struct page_map_settings {
-    unsigned int writable;
-    unsigned int user_accessable;
-    unsigned int pagelvl_write_through;
-    unsigned int pagelvl_cache_disable;
-    unsigned int hlat_restart;
-    unsigned int xd;
-    unsigned int global;
-    unsigned int pat;
-};
 
 struct __attribute__((packed)) gdt_descriptor_long {
     uint16_t limit_0_15;

@@ -24,24 +24,24 @@ volatile struct limine_hhdm_request hhdm_request = {
     .revision = 0,
 };
 
-union cr3_image get_cr3() {
-    union cr3_image ret;
-    __asm__ volatile ("mov %%cr3, %0" : "=r"(ret.as_u64));
+cr3_image get_cr3() {
+    cr3_image ret;
+    __asm__ volatile ("mov %%cr3, %0" : "=r"(ret));
     return ret;
 }
 
-void set_cr3(union cr3_image val) {
-    __asm__ volatile ("mov %0, %%cr3" : : "r"(val.as_u64));
+void set_cr3(cr3_image val) {
+    __asm__ volatile ("mov %0, %%cr3" : : "r"(val));
 };
 
-void zero_paging_table(union paging_structure table[512]) {
+void zero_paging_table(uint64_t table[512]) {
     for (int i = 0; i < 512; i++) {
-        table[i].as_u64 = 0x0;
+        table[i] = 0x0;
     }
 }
 
 void x64_init_virtual_memory() {
-    kernel_pml4_table = (pml4_entry_t *)(hhdm_request.response->offset + get_cr3().as_u64);
+    kernel_pml4_table = (pml4_entry_t *)(hhdm_request.response->offset + get_cr3());
     hhdm_offset = hhdm_request.response->offset;
 
     printctrl(PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
@@ -49,7 +49,7 @@ void x64_init_virtual_memory() {
     printk("Limine's loaded pml4 table = %x\n", kernel_pml4_table);
 
     uint64_t phys;
-    if (map_lookup(kernel_pml4_table, (uint64_t)hhdm_offset + 0x7ff5d000, &phys) < 0) {
+    if (map_lookup(kernel_pml4_table, (uint64_t)kernel_pml4_table, &phys) < 0) {
         printk("Failed to lookup mapping.\n");
     }
 }
@@ -134,14 +134,14 @@ int map_lookup(pml4_entry_t *pml4_table, uint64_t virt, uint64_t *phys_ret) {
     unsigned int pdpt_index = EXTRACT_PDPT_INDEX(virt);
     unsigned int pdt_index  = EXTRACT_PDT_INDEX(virt);
     unsigned int pt_index   = EXTRACT_PT_INDEX(virt);
-    unsigned int page_offset = EXTRACT_PAGE_OFFSET(virt);
+    unsigned int page_offset;
 
     unsigned int page_startaddr = 0;
 
     printctrl(PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
-    printk("==== Looking up mapping from %x\n");
+    printk("==== Looking up mapping from %x\n", virt);
     printctrl_unset(PRINTCTRL_LEADING_HEX);
-    printk("\tIndexes: PML4[%x], PDPT[%x], PDT[%x], PT[%x], Page Offset = %x\n", pml4_index, pdpt_index, pdt_index, pt_index, page_offset);
+    printk("\tIndexes: PML4[%x], PDPT[%x], PDT[%x], PT[%x]\n", pml4_index, pdpt_index, pdt_index, pt_index);
 
     if (!(pml4_table[pml4_index] & PSE_PRESENT)) {
         *phys_ret = 0;
@@ -159,6 +159,7 @@ int map_lookup(pml4_entry_t *pml4_table, uint64_t virt, uint64_t *phys_ret) {
     // If this pdpt entry maps a 1GB page instead of pointing to a pdt
     if (pdpt_table[pdpt_index] & PSE_PAGESIZE) {
         page_startaddr = PSE_PTR(pdpt_table[pdpt_index]);
+        page_offset = EXTRACT_1G_PAGE_OFFSET(virt);
         goto set_addr;
     }
 
@@ -171,7 +172,8 @@ int map_lookup(pml4_entry_t *pml4_table, uint64_t virt, uint64_t *phys_ret) {
     }
 
     if (pdt_table[pdt_index] & PSE_PAGESIZE) {
-        page_startaddr = PSE_PTR(pdpt_table[pdpt_index]);
+        page_startaddr = PSE_PTR(pdt_table[pdt_index]);
+        page_offset = EXTRACT_2M_PAGE_OFFSET(virt);
         goto set_addr;
     }
 
@@ -182,11 +184,13 @@ int map_lookup(pml4_entry_t *pml4_table, uint64_t virt, uint64_t *phys_ret) {
         return -1;
     }
 
-    printk("\tPage @ %x\n", PSE_PTR(page_table[pt_index]));
     page_startaddr = PSE_PTR(page_table[pt_index]);
+    page_offset = EXTRACT_4K_PAGE_OFFSET(virt);
 
 set_addr:
+    printk("\tPage @ %x\n", page_startaddr);
     *phys_ret = page_startaddr + page_offset;
+    printk("\tPage offset = %x\n", page_offset);
     printk("\tPhysical address = %x\n", *phys_ret);
     return 0;
 }
