@@ -15,6 +15,10 @@ run: $(IMG_PREF).iso
 debug: $(IMG_PREF).iso
 	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $< -boot d -serial stdio -display gtk
 
+.PHONY: gdb
+gdb: $(BUILD)/iso/fors.elf
+	gdb $< -ex "target remote :1234"
+
 .PHONY: kernel
 kernel:
 	make -C kernel
