@@ -58,7 +58,7 @@ void *kalloc(size_t size) {
 
     // By this point size is a power of 2
 
-    buddy_block *closest_block = kheap_start;
+    buddy_block *closest_block = NULL;
 
     for (buddy_block *bl = kheap_start; bl; bl = bl->next) {
         if (!bl->taken && bl->size >= size) {
@@ -66,12 +66,13 @@ void *kalloc(size_t size) {
                 bl->taken = true;
                 return bl->data_start; // No need to split if found precise size
             } else {
-                closest_block = bl->size < closest_block->size ? bl : closest_block;
+                if (!closest_block) 
+                    closest_block = bl;
+                else 
+                    closest_block = bl->size < closest_block->size ? bl : closest_block;
             }
         }
     }
-
-    // If we haven't found the precise size block then closest_block needs to be split at least once to be size bytes exactly.
 
     int divs = __builtin_clz(size) - __builtin_clz(closest_block->size);
 
@@ -79,6 +80,7 @@ void *kalloc(size_t size) {
         buddy_split(closest_block);
     }
 
+    closest_block->taken = true;
     return closest_block->data_start;
 }
 
