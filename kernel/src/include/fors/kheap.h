@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define BUDDY_MIN_BLOCK 256
+#define BUDDY_MIN_BLOCK 64
 
 void kheap_reinitialise(void *start, size_t size);
 
