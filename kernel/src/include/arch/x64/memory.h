@@ -8,6 +8,11 @@
 
 #define ARCH_PAGE_SIZE 4096 // The size in bytes of page frames and virtual pages
 
+// Flags for generic function vmap
+#define VMAP_4K 1 << 0
+#define VMAP_2M 1 << 1
+#define VMAP_1G 1 << 2
+
 extern volatile struct limine_memmap_request memmap_req;
 
 struct frame_marker {
@@ -37,7 +42,6 @@ union segment_selector {
         unsigned int entry : 13;
     } element;
 };
-static_assert(sizeof(union segment_selector) == 2, "");
 
 #define TABLE_GDT 0
 #define TABLE_LDT 1
@@ -45,7 +49,7 @@ static_assert(sizeof(union segment_selector) == 2, "");
 typedef uint64_t cr3_image;
 
 // Paging structure entry macros
-#define PSE_PTR(val) (val & 0x000ffffffffff000)
+#define PSE_PTR(val) ((unsigned long)val & 0x000ffffffffff000)
 #define PSE_PRESENT     1 << 0
 #define PSE_WRITABLE    1 << 1
 #define PSE_USER        1 << 2
@@ -63,7 +67,6 @@ typedef uint64_t cr3_image;
 typedef uint64_t pml4_entry_t; // References a page directory pointer table
 typedef uint64_t pdpt_entry_t; // References a page directory
 typedef uint64_t pdt_entry_t; // References a page table
-
 typedef uint64_t pt_entry_t;
 
 #define EXTRACT_4K_PAGE_OFFSET(vaddr) (vaddr & 0xfff)
@@ -116,8 +119,9 @@ struct __attribute__((packed)) gdtr_image {
 #define SEG_FLAG_4K_BLOCKS  1 << 3
 
 // Map the virtual page 'virt' to the page frame at 'phys'.
-void map_page(pml4_entry_t *pml4_table, uint64_t phys, uint64_t virt, struct page_map_settings flags);
-int map_lookup(pml4_entry_t *pml4_table, uint64_t virt, uint64_t *phys_ret);
+int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsigned int flags);
+
+int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret);
 
 void x64_init_physical_memory();
 void x64_init_virtual_memory();
