@@ -26,9 +26,9 @@ void _start(void) {
 // \tPitch: %d\n\
 // \tBits/pixel: %d\n", fb->address, fb->width, fb->height, fb->pitch, fb->bpp);
 
-//     for (int i = 0; i < 100; i++) {
-//         fb_arr[i * (fb->pitch / 4) + i] = 0xffffff;
-//     }
+    for (int i = 0; i < 100; i++) {
+        fb_arr[i * (fb->pitch / 4) + i] = 0xffffff;
+    }
     
     for (;;) {
         __asm__("hlt");

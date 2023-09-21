@@ -31,13 +31,12 @@ void insert_block(buddy_allocator *alloc, buddy_block *bl) {
     alloc->order_lists[bl->order - alloc->min_order] = bl;
 }
 
-int buddy_init(size_t size, size_t min_order, buddy_allocator *alloc) {
+int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc) {
     if ((size & (size-1)) != 0) {
         return -1;
     }
 
-    //buddy_block *root_block = aligned_alloc(size, size);
-    buddy_block *root_block;
+    buddy_block *root_block = ptr;
 
     if (!root_block) {
         return -1;

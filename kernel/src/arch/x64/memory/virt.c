@@ -15,16 +15,6 @@ pml4_entry_t *kernel_pml4_table = NULL;
 
 uint64_t hhdm_offset;
 
-volatile struct limine_kernel_address_request kernel_address_request = {
-    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
-    .revision = 0,
-};
-
-volatile struct limine_hhdm_request hhdm_request = {
-    .id = LIMINE_HHDM_REQUEST,
-    .revision = 0,
-};
-
 cr3_image get_cr3() {
     cr3_image ret;
     __asm__ volatile ("mov %%cr3, %0" : "=r"(ret));
@@ -48,11 +38,6 @@ void x64_init_virtual_memory() {
     printctrl(PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
     printk("Direct map starts at virt %x\n", hhdm_offset);
     printk("Limine's loaded pml4 table = %x\n", kernel_pml4_table);
-
-    uint64_t phys;
-    if (map_lookup(kernel_pml4_table, (uint64_t)kernel_pml4_table, &phys) < 0) {
-        printk("Failed to lookup mapping.\n");
-    }
 }
 
 int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsigned int flags) {

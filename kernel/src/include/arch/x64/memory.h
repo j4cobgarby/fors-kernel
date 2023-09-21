@@ -14,6 +14,8 @@
 #define VMAP_1G 1 << 2
 
 extern volatile struct limine_memmap_request memmap_req;
+extern volatile struct limine_hhdm_request hhdm_request;
+extern volatile struct limine_kernel_address_request kernel_address_request;
 
 struct frame_marker {
     struct frame_marker *next;
