@@ -56,7 +56,7 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
         *pml4_entry = PSE_PTR(new_pdpt) | flags;
     }
 
-    pdpt_entry_t *pdpt_table = (pdpt_entry_t *)PSE_PTR(pml4_entry);
+    pdpt_entry_t *pdpt_table = (pdpt_entry_t *)PSE_GET_PTR(pml4_entry);
     pdpt_entry_t *pdpt_entry = &(pdpt_table[pdpt_index]); // An entry in the pdpt which points to one page directory table
 
     if (*pdpt_entry & PSE_PAGESIZE) {
@@ -70,7 +70,7 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
         *pdpt_entry = PSE_PTR(new_pdt) | flags;
     }
 
-    pdt_entry_t *pdt_table = (pdt_entry_t *)PSE_PTR(pdpt_entry);
+    pdt_entry_t *pdt_table = (pdt_entry_t *)PSE_GET_PTR(pdpt_entry);
     pdt_entry_t *pdt_entry = &(pdt_table[pdt_index]); // An entry in the pdt which points to one page table
 
     if (*pdt_entry & PSE_PAGESIZE) {
@@ -84,7 +84,7 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
         *pdt_entry = PSE_PTR(new_pt) | flags;
     }
 
-    pt_entry_t *page_table = (pt_entry_t *)PSE_PTR(pdt_entry);
+    pt_entry_t *page_table = (pt_entry_t *)PSE_GET_PTR(pdt_entry);
     pt_entry_t *pt_entry = &(page_table[pt_index]); // An entry in the page table, which points to one 4K page
 
     // Here we don't allocate any memory for the 4K page, because the physical address is already
@@ -169,6 +169,11 @@ set_addr:
 int vmap(int pid, void *pa, void *va, int size, int flags) {
     pml4_entry_t *root_table;
 
+    uint64_t mapping_flags = 0;
+    if (flags & VMAP_USER) mapping_flags |= PSE_USER;
+    if (flags & VMAP_WRIT) mapping_flags |= PSE_WRITABLE;
+    if (!(flags & VMAP_EXEC)) mapping_flags |= PSE_XD;
+
     if (pid == -1) {
         root_table = kernel_pml4_table;
     } else {
@@ -176,7 +181,7 @@ int vmap(int pid, void *pa, void *va, int size, int flags) {
     }
 
     if (flags & VMAP_4K) {
-        return map_page_4k(root_table, (uintptr_t)pa, (uintptr_t)va, 0);
+        return map_page_4k(root_table, (uintptr_t)pa, (uintptr_t)va, mapping_flags);
     } else {
         return EIMPL;
     }

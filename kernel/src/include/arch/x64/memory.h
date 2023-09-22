@@ -46,20 +46,27 @@ union segment_selector {
 typedef uint64_t cr3_image;
 
 // Paging structure entry macros
-#define PSE_PTR(val) ((unsigned long)val & 0x000ffffffffff000)
-#define PSE_PRESENT     1 << 0
-#define PSE_WRITABLE    1 << 1
-#define PSE_USER        1 << 2
-#define PSE_PWT         1 << 3
-#define PSE_PCD         1 << 4
-#define PSE_ACCESSED    1 << 5
-#define PSE_DIRTY       1 << 6
-#define PSE_PAGESIZE    1 << 7
-#define PSE_PAT         1 << 7
-#define PSE_GLOBAL      1 << 8
-#define PSE_HLATRESTART 1 << 11
-#define PSE_PT_PAT      1 << 12 // PAT bit is in a different place specifically for page table entries
-#define PSE_XD          1 << 63
+#define PSE_PTR(val) ((unsigned long)val & 0x000f'ffff'ffff'f000)
+#define PSE_PRESENT     1L << 0
+#define PSE_WRITABLE    1L << 1
+#define PSE_USER        1L << 2
+#define PSE_PWT         1L << 3
+#define PSE_PCD         1L << 4
+#define PSE_ACCESSED    1L << 5
+#define PSE_DIRTY       1L << 6
+#define PSE_PAGESIZE    1L << 7
+#define PSE_PAT         1L << 7
+#define PSE_GLOBAL      1L << 8
+#define PSE_HLATRESTART 1L << 11
+#define PSE_PT_PAT      1L << 12 // PAT bit is in a different place specifically for page table entries
+#define PSE_XD          1L << 63
+
+
+#define HH_MASK 0xffff'8000'0000'0000
+#define ENFORCE_HH_CANONICAL(ptr)   ((ptr) | HH_MASK)
+#define ENFORCE_LH_CANONICAL(ptr)   ((ptr) & ~HH_MASK)
+
+#define PSE_GET_PTR(val) ENFORCE_HH_CANONICAL(PSE_PTR(val))
 
 typedef uint64_t pml4_entry_t; // References a page directory pointer table
 typedef uint64_t pdpt_entry_t; // References a page directory
@@ -75,7 +82,6 @@ typedef uint64_t pt_entry_t;
 #define EXTRACT_PDT_INDEX(vaddr)    ((vaddr >> 21) & 0x1ff)
 #define EXTRACT_PT_INDEX(vaddr)     ((vaddr >> 12) & 0x1ff)
 #define EXTRACT_PAGE_OFFSET(vaddr)  EXTRACT_4K_PAGE_OFFSET(vaddr)
-
 
 struct __attribute__((packed)) gdt_descriptor_long {
     uint16_t limit_0_15;
