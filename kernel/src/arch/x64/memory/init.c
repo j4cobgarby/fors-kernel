@@ -38,6 +38,10 @@ void arch_init_memory() {
     kheap_start &= mask;
     
     printk("Kheap starts at %x (%d long/aligned)\n", kheap_start, KHEAP_SIZE);
+    void *pageframe = pfalloc_one();
+    printk("Mapping virt %x to phys %x\n", kheap_start, pageframe);
+    vmap(-1, pfalloc_one(), (void*)kheap_start, 4096, VMAP_4K | VMAP_WRIT);
+    printk("Mapped in kheap start.\n");
 
     buddy_init(KHEAP_SIZE, (void*)kheap_start, 5, &kheap_alloc);
 }
