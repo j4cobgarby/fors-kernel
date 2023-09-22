@@ -1,3 +1,4 @@
+#include "arch/x64/idt.h"
 #include "fors/memory.h"
 #include "arch/x64/memory.h"
 #include "fors/kheap.h"
@@ -19,26 +20,24 @@ volatile struct limine_kernel_address_request kernel_address_request = {
     .revision = 0,
 };
 
-#define KHEAP_SIZE 65536
+#define KHEAP_SIZE 4096
 
 buddy_allocator kheap_alloc; // Defined in kheap.h
+
+extern const void *_FORS_KERNEL_END; // Defined in linker.ld as the end of the virtual memory the kernel's loaded at
 
 void arch_init_memory() {
     x64_init_physical_memory();
     x64_init_virtual_memory();
     x64_init_gdt();
 
-    uint64_t hhdm_start = hhdm_request.response->offset;
-    uint64_t kernel_start = kernel_address_request.response->virtual_base;
-    uint64_t first = hhdm_start < kernel_start ? hhdm_start : kernel_start;
+    idt_init();
 
-    uint64_t kheap_start = first - KHEAP_SIZE;
+    uint64_t kheap_start = (uint64_t)&_FORS_KERNEL_END + KHEAP_SIZE;
     uint64_t mask = 0xffffffffffffffff << __builtin_ctz(KHEAP_SIZE);
     kheap_start &= mask;
-
+    
     printk("Kheap starts at %x (%d long/aligned)\n", kheap_start, KHEAP_SIZE);
 
-    //buddy_init(KHEAP_SIZE, (void*)kheap_start, 5, &kheap_alloc);
-
-    //printk("Initialised kernel heap.\n");
+    buddy_init(KHEAP_SIZE, (void*)kheap_start, 5, &kheap_alloc);
 }
