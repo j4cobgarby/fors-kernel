@@ -8,11 +8,6 @@
 
 #define ARCH_PAGE_SIZE 4096 // The size in bytes of page frames and virtual pages
 
-// Flags for generic function vmap
-#define VMAP_4K 1 << 0
-#define VMAP_2M 1 << 1
-#define VMAP_1G 1 << 2
-
 extern volatile struct limine_memmap_request memmap_req;
 extern volatile struct limine_hhdm_request hhdm_request;
 extern volatile struct limine_kernel_address_request kernel_address_request;

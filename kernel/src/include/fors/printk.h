@@ -3,6 +3,11 @@
 
 #include <stdarg.h>
 
+#define TRACE() printk("*** TRACE() at %s:%d [%s]\n", __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define TRACE_MSG(msg) printk("*** " msg " at %s:%d [%s]\n", __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+#define ERROR(msg) TRACE_MSG("ERROR! ")
+
 // Arch-defined functions
 void kputs(const char *restrict str);
 void kputc(const char);
@@ -20,7 +25,7 @@ void kputc(const char);
 // Should printk print spacers for hex?
 #define PRINTCTRL_SPACERS       1 << 4
 
-void printk(const char *restrict fmt, ...);
+void __attribute__((no_caller_saved_registers)) printk(const char *restrict fmt, ...);
 
 void printctrl(unsigned int flags);
 

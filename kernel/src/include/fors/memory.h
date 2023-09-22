@@ -31,10 +31,13 @@ void *vget_mapping(int pid, void *va, void *attr_out);
 void *valloc(int pid, int size, unsigned int flags, size_t align);
 
 // Virtual address flags
-#define VAF_NONE 0
-#define VAF_EXEC 1 << 0
-#define VAF_USER 1 << 1
-#define VAF_WRIT 1 << 2
+#define VMAP_NONE 0
+#define VMAP_EXEC 1 << 0
+#define VMAP_USER 1 << 1
+#define VMAP_WRIT 1 << 2
+#define VMAP_4K   1 << 3
+#define VMAP_2M   1 << 4
+#define VMAP_1G   1 << 5
 
 typedef struct memory_region {
     uintptr_t base;
