@@ -45,10 +45,11 @@ INTERRUPT_HANDLER isr_SS(struct isr_frame *frame, uint64_t error_code){
 INTERRUPT_HANDLER isr_GP(struct isr_frame *frame, uint64_t error_code){
     printk("#GP w/ error code %d\n", error_code);
     printk("\tRIP = %x\n", frame->ip);
+    __asm__ ("hlt");
     
 }
 
 INTERRUPT_HANDLER isr_PF(struct isr_frame *frame, uint64_t error_code){
     printk("#PF w/ error code %d\n", error_code);
-    //for (;;);
+    __asm__ ("hlt");
 }
