@@ -22,8 +22,12 @@ cr3_image get_cr3() {
 }
 
 void set_cr3(cr3_image val) {
-    __asm__ volatile ("mov %0, %%cr3" : : "r"(val));
+    __asm__ volatile ("mov %0, %%cr3" : : "r"(val) : "memory");
 };
+
+static inline void __native_flush_tlb_single(unsigned long virt) {
+   __asm__ volatile("invlpg (%0)" : : "r" (virt) : "memory");
+}
 
 void zero_paging_table(uint64_t table[512]) {
     for (int i = 0; i < 512; i++) {
@@ -92,6 +96,8 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     // The caller should allocate a frame for the page.
 
     *pt_entry = PSE_PTR(phys) | flags;
+
+    __native_flush_tlb_single(virt);
 
     return 0;
 }
