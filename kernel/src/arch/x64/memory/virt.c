@@ -46,58 +46,74 @@ void x64_init_virtual_memory() {
 
 int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsigned int flags) {
     unsigned int pml4_index = EXTRACT_PML4_INDEX(virt);
-    unsigned int pdpt_index = EXTRACT_PDPT_INDEX(virt);
-    unsigned int pdt_index  = EXTRACT_PDT_INDEX(virt);
-    unsigned int pt_index   = EXTRACT_PT_INDEX(virt);
+    unsigned int pml3_index = EXTRACT_PML3_INDEX(virt);
+    unsigned int pml2_index = EXTRACT_PML2_INDEX(virt);
+    unsigned int pml1_index = EXTRACT_PML1_INDEX(virt);
 
-    pml4_entry_t *pml4_entry = &(pml4_table[pml4_index]); // An entry in the pml4 table which points to one page directory pointer table
+    printk("==== Mapping 4k page ====\n");
+    printctrl(PRINTCTRL_SPACERS | PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
+    printk("PML4 @ %x\n", pml4_table);
+    printk("Indices:\n\tPML4[%d]\n\tPML3[%d]\n\tPML2[%d]\n\tPML1[%d]\n",
+        pml4_index, pml3_index, pml2_index, pml1_index);
 
-    // Allocate space for a new page directory pointer table, if needed
+    pml4_entry_t *pml4_entry = &(pml4_table[pml4_index]);
+
     if (!(*pml4_entry & PSE_PRESENT)) {
-        pdpt_entry_t *new_pdpt = pfalloc_one();
-        zero_paging_table(new_pdpt);
+        printk("Creating new PML3.");
+        // If the pml4 entry was not set as present, then create a new pml3 table.
+        pml3_entry_t *new_pml3 = pfalloc_one();
+        printk("Done.\n");
+        zero_paging_table(new_pml3);
 
-        *pml4_entry = PSE_PTR(new_pdpt) | flags;
+        *pml4_entry = PSE_PTR(new_pml3) | flags | PSE_PRESENT;
     }
 
-    pdpt_entry_t *pdpt_table = (pdpt_entry_t *)PSE_GET_PTR(pml4_entry);
-    pdpt_entry_t *pdpt_entry = &(pdpt_table[pdpt_index]); // An entry in the pdpt which points to one page directory table
+    pml3_entry_t *pml3_table = (pml3_entry_t *)PSE_GET_PTR(pml4_entry);
+    pml3_entry_t *pml3_entry = &(pml3_table[pml3_index]); 
 
-    if (*pdpt_entry & PSE_PAGESIZE) {
+    if (*pml3_entry & PSE_PAGESIZE) {
         return EGENERIC;
     }
 
-    if (!(*pdpt_entry & PSE_PRESENT)) {
-        pdt_entry_t *new_pdt = pfalloc_one();
-        zero_paging_table(new_pdt);
+    if (!(*pml3_entry & PSE_PRESENT)) {
+        printk("Creating new PML2.");
+        pml2_entry_t *new_pml2 = pfalloc_one();
+        printk("Done.\n");
+        zero_paging_table(new_pml2);
         
-        *pdpt_entry = PSE_PTR(new_pdt) | flags;
+        *pml3_entry = PSE_PTR(new_pml2) | flags;
     }
 
-    pdt_entry_t *pdt_table = (pdt_entry_t *)PSE_GET_PTR(pdpt_entry);
-    pdt_entry_t *pdt_entry = &(pdt_table[pdt_index]); // An entry in the pdt which points to one page table
+    pml2_entry_t *pml2_table = (pml2_entry_t *)PSE_GET_PTR(pml3_entry);
+    pml2_entry_t *pml2_entry = &(pml2_table[pml2_index]); // An entry in the pdt which points to one page table
 
-    if (*pdt_entry & PSE_PAGESIZE) {
+    if (*pml2_entry & PSE_PAGESIZE) {
         return EGENERIC;
     }
 
-    if (!(*pdt_entry & PSE_PRESENT)) {
-        pt_entry_t *new_pt = pfalloc_one();
+    if (!(*pml2_entry & PSE_PRESENT)) {
+        printk("Creating new PML1.");
+        pml1_entry_t *new_pt = pfalloc_one();
+        printk("Done.\n");
         zero_paging_table(new_pt);
 
-        *pdt_entry = PSE_PTR(new_pt) | flags;
+        *pml2_entry = PSE_PTR(new_pt) | flags;
     }
 
-    pt_entry_t *page_table = (pt_entry_t *)PSE_GET_PTR(pdt_entry);
-    pt_entry_t *pt_entry = &(page_table[pt_index]); // An entry in the page table, which points to one 4K page
+    pml1_entry_t *pml1_table = (pml1_entry_t *)PSE_GET_PTR(pml2_entry);
+    pml1_entry_t *pml1_entry = &(pml1_table[pml1_index]); // An entry in the page table, which points to one 4K page
 
     // Here we don't allocate any memory for the 4K page, because the physical address is already
     // specified in 'phys'.
     // The caller should allocate a frame for the page.
 
-    *pt_entry = PSE_PTR(phys) | flags;
+    *pml1_entry = PSE_PTR(phys) | flags;
 
+    //set_cr3(get_cr3());
+    //set_cr3((cr3_image)pml4_table & 0xfffffffffffff000);
     __native_flush_tlb_single(virt);
+
+    printk("==== Finished Mapping ====\n");
 
     return 0;
 }
@@ -109,9 +125,9 @@ phys_ret:   Pointer to a uint64_t in which to place the result of the lookup. Se
 (return):   -1 on failure, 0 on success. */
 int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
     unsigned int pml4_index = EXTRACT_PML4_INDEX(virt);
-    unsigned int pdpt_index = EXTRACT_PDPT_INDEX(virt);
-    unsigned int pdt_index  = EXTRACT_PDT_INDEX(virt);
-    unsigned int pt_index   = EXTRACT_PT_INDEX(virt);
+    unsigned int pdpt_index = EXTRACT_PML3_INDEX(virt);
+    unsigned int pdt_index  = EXTRACT_PML2_INDEX(virt);
+    unsigned int pt_index   = EXTRACT_PML1_INDEX(virt);
     unsigned int page_offset;
 
     unsigned int page_startaddr = 0;
@@ -126,7 +142,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
     }
 
     printk("\tPDPT @ %x\n", PSE_PTR(pml4_table[pml4_index]));
-    pdpt_entry_t *pdpt_table = (pdpt_entry_t*)(hhdm_offset + PSE_PTR(pml4_table[pml4_index]));
+    pml3_entry_t *pdpt_table = (pml3_entry_t*)(hhdm_offset + PSE_PTR(pml4_table[pml4_index]));
 
     if (!(pdpt_table[pdpt_index] & PSE_PRESENT)) {
         *phys_ret = 0;
@@ -141,7 +157,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
     }
 
     printk("\tPDT @ %x\n", PSE_PTR(pdpt_table[pdpt_index]));
-    pdt_entry_t *pdt_table = (pdt_entry_t*)(hhdm_offset + PSE_PTR(pdpt_table[pdpt_index]));
+    pml2_entry_t *pdt_table = (pml2_entry_t*)(hhdm_offset + PSE_PTR(pdpt_table[pdpt_index]));
 
     if (!(pdt_table[pdt_index] & PSE_PRESENT)) {
         *phys_ret = 0;
@@ -155,7 +171,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
     }
 
     printk("\tPT @ %x\n", PSE_PTR(pdt_table[pdt_index]));
-    pt_entry_t *page_table = (pt_entry_t*)(hhdm_offset + PSE_PTR(pdt_table[pdt_index]));
+    pml1_entry_t *page_table = (pml1_entry_t*)(hhdm_offset + PSE_PTR(pdt_table[pdt_index]));
     if (!(page_table[pt_index] & PSE_PRESENT)) {
         *phys_ret = 0;
         return ENOMAP;

@@ -69,19 +69,18 @@ typedef uint64_t cr3_image;
 #define PSE_GET_PTR(val) ENFORCE_HH_CANONICAL(PSE_PTR(val))
 
 typedef uint64_t pml4_entry_t; // References a page directory pointer table
-typedef uint64_t pdpt_entry_t; // References a page directory
-typedef uint64_t pdt_entry_t; // References a page table
-typedef uint64_t pt_entry_t;
+typedef uint64_t pml3_entry_t; // References a page directory
+typedef uint64_t pml2_entry_t; // References a page table
+typedef uint64_t pml1_entry_t;
 
 #define EXTRACT_4K_PAGE_OFFSET(vaddr) (vaddr & 0xfff)
 #define EXTRACT_2M_PAGE_OFFSET(vaddr) (vaddr & 0x1fffff)
 #define EXTRACT_1G_PAGE_OFFSET(vaddr) (vaddr & 0x3fffffff)
 
 #define EXTRACT_PML4_INDEX(vaddr)   ((vaddr >> 39) & 0x1ff)
-#define EXTRACT_PDPT_INDEX(vaddr)   ((vaddr >> 30) & 0x1ff)
-#define EXTRACT_PDT_INDEX(vaddr)    ((vaddr >> 21) & 0x1ff)
-#define EXTRACT_PT_INDEX(vaddr)     ((vaddr >> 12) & 0x1ff)
-#define EXTRACT_PAGE_OFFSET(vaddr)  EXTRACT_4K_PAGE_OFFSET(vaddr)
+#define EXTRACT_PML3_INDEX(vaddr)   ((vaddr >> 30) & 0x1ff)
+#define EXTRACT_PML2_INDEX(vaddr)    ((vaddr >> 21) & 0x1ff)
+#define EXTRACT_PML1_INDEX(vaddr)     ((vaddr >> 12) & 0x1ff)
 
 struct __attribute__((packed)) gdt_descriptor_long {
     uint16_t limit_0_15;

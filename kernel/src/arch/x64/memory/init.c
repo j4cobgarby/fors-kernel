@@ -43,4 +43,6 @@ void arch_init_memory() {
     vmap(-1, pageframe, (void*)kheap_start, 4096, VMAP_4K | VMAP_WRIT);
 
     buddy_init(KHEAP_SIZE, (void*)kheap_start, 5, &kheap_alloc);
+
+    printk("Buddy initialised.\n");
 }
