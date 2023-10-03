@@ -15,17 +15,17 @@ pml4_entry_t *kernel_pml4_table = NULL;
 
 uint64_t hhdm_offset;
 
-cr3_image get_cr3() {
+static inline cr3_image get_cr3() {
     cr3_image ret;
     __asm__ volatile ("mov %%cr3, %0" : "=r"(ret));
     return ret;
 }
 
-void set_cr3(cr3_image val) {
+static inline void set_cr3(cr3_image val) {
     __asm__ volatile ("mov %0, %%cr3" : : "r"(val) : "memory");
 };
 
-static inline void __native_flush_tlb_single(unsigned long virt) {
+static inline void flush_tlb(unsigned long virt) {
    __asm__ volatile("invlpg (%0)" : : "r" (virt) : "memory");
 }
 
@@ -57,13 +57,15 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
     pml4_entry_t *pml4_entry = &(pml4_table[pml4_index]);
 
-    printk("PML4 @ %x\tPML4[%d] = %x\n", pml4_table, pml4_index, *pml4_entry);
-
     if (!(*pml4_entry & PSE_PRESENT)) {
-        printk("Creating new PML3.");
         // If the pml4 entry was not set as present, then create a new pml3 table.
         pml3_entry_t *new_pml3 = pfalloc_one();
-        printk("Done.\n");
+
+        if (!new_pml3) {
+            printk("Failed to allocate page frame for PML3 table.\n");
+            return ENOMEM;
+        }
+
         zero_paging_table(new_pml3);
 
         *pml4_entry = PSE_PTR(new_pml3) | flags | PSE_PRESENT;
@@ -72,16 +74,18 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     pml3_entry_t *pml3_table = (pml3_entry_t *)PSE_GET_PTR(*pml4_entry);
     pml3_entry_t *pml3_entry = &(pml3_table[pml3_index]); 
 
-    printk("PML3 @ %x\tPML3[%d] = %x\n", pml3_table, pml3_index, *pml3_entry);
-
     if (*pml3_entry & PSE_PAGESIZE) {
         return EGENERIC;
     }
 
     if (!(*pml3_entry & PSE_PRESENT)) {
-        printk("Creating new PML2.");
         pml2_entry_t *new_pml2 = pfalloc_one();
-        printk("Done.\n");
+
+        if (!new_pml2) {
+            printk("Failed to allocate page frame for PML2 table.\n");
+            return ENOMEM;
+        }
+
         zero_paging_table(new_pml2);
         
         *pml3_entry = PSE_PTR(new_pml2) | flags;
@@ -90,19 +94,21 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     pml2_entry_t *pml2_table = (pml2_entry_t *)PSE_GET_PTR(*pml3_entry);
     pml2_entry_t *pml2_entry = &(pml2_table[pml2_index]); // An entry in the pdt which points to one page table
 
-    printk("PML2 @ %x\tPML2[%d] = %x\n", pml2_table, pml2_index, *pml2_entry);
-
     if (*pml2_entry & PSE_PAGESIZE) {
         return EGENERIC;
     }
 
     if (!(*pml2_entry & PSE_PRESENT)) {
-        printk("Creating new PML1.");
-        pml1_entry_t *new_pt = pfalloc_one();
-        printk("Done.\n");
-        zero_paging_table(new_pt);
+        pml1_entry_t *new_pml1 = pfalloc_one();
 
-        *pml2_entry = PSE_PTR(new_pt) | flags;
+        if (!new_pml1) {
+            printk("Failed to allocate page frame for PML1 table.\n");
+            return ENOMEM;
+        }
+
+        zero_paging_table(new_pml1);
+
+        *pml2_entry = PSE_PTR(new_pml1) | flags;
     }
 
     pml1_entry_t *pml1_table = (pml1_entry_t *)PSE_GET_PTR(*pml2_entry);
@@ -112,13 +118,9 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     // specified in 'phys'.
     // The caller should allocate a frame for the page.
 
-    printk("PML1 is at %x. Setting entry at %x to be %x\n", pml1_table, pml1_entry, PSE_PTR(phys) | flags);
-
     *pml1_entry = PSE_PTR(phys) | flags;
 
-    //set_cr3(get_cr3());
-    //set_cr3((cr3_image)pml4_table & 0xfffffffffffff000);
-    __native_flush_tlb_single(virt);
+    flush_tlb(virt);
 
     printk("==== Finished Mapping ====\n");
 

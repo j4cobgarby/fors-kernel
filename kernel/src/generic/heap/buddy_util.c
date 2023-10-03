@@ -1,4 +1,5 @@
 #include "fors/kheap.h"
+#include "fors/printk.h"
 
 // Remove a block from whichever list it's in
 // Before:  ... A <-> bl <-> B ...
@@ -37,6 +38,8 @@ int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc)
     }
 
     buddy_block *root_block = ptr;
+
+    printk("Initialising buddy allocator with root block at %x\n", root_block);
 
     if (!root_block) {
         return -1;

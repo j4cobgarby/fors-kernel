@@ -20,7 +20,8 @@ volatile struct limine_kernel_address_request kernel_address_request = {
     .revision = 0,
 };
 
-#define KHEAP_SIZE 4096
+// The largest size that the kernel heap can ever grow to be. Must be a power of 2
+#define KHEAP_MAXSIZE       65536 // 2^16
 
 buddy_allocator kheap_alloc; // Defined in kheap.h
 
@@ -33,16 +34,15 @@ void arch_init_memory() {
 
     idt_init();
 
-    uint64_t kheap_start = (uint64_t)&_FORS_KERNEL_END + KHEAP_SIZE;
-    uint64_t mask = 0xffffffffffffffff << __builtin_ctz(KHEAP_SIZE);
-    kheap_start &= mask;
+    // Find the next memory after the end of kernel memory that is a multiple of WHEAT_MAXSIZE.
+    uint64_t kheap_start = (uint64_t)&_FORS_KERNEL_END & (0xffffffffffffffff << __builtin_ctz(KHEAP_MAXSIZE));
+    kheap_start += KHEAP_MAXSIZE;
     
-    printk("Kheap starts at %x (%d long/aligned)\n", kheap_start, KHEAP_SIZE);
-    void *pageframe = pfalloc_one();
-    printk("Mapping virt %x to phys %x\n", kheap_start, pageframe);
-    vmap(-1, pageframe, (void*)kheap_start, 4096, VMAP_4K | VMAP_WRIT);
+    printk("Kheap starts at %x (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
 
-    buddy_init(KHEAP_SIZE, (void*)kheap_start, 5, &kheap_alloc);
+    if (vmap(-1, pfalloc_one(), (void*)kheap_start, ARCH_PAGE_SIZE, VMAP_4K | VMAP_WRIT) < 0) {
+        printk("Failed to map in kernel heap.\n");
+    }
 
-    printk("Buddy initialised.\n");
+    buddy_init(ARCH_PAGE_SIZE, (void*)kheap_start, 5, &kheap_alloc);
 }
