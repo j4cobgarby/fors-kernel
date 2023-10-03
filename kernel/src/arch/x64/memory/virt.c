@@ -52,11 +52,12 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
     printk("==== Mapping 4k page ====\n");
     printctrl(PRINTCTRL_SPACERS | PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
-    printk("PML4 @ %x\n", pml4_table);
     printk("Indices:\n\tPML4[%d]\n\tPML3[%d]\n\tPML2[%d]\n\tPML1[%d]\n",
         pml4_index, pml3_index, pml2_index, pml1_index);
 
     pml4_entry_t *pml4_entry = &(pml4_table[pml4_index]);
+
+    printk("PML4 @ %x\tPML4[%d] = %x\n", pml4_table, pml4_index, *pml4_entry);
 
     if (!(*pml4_entry & PSE_PRESENT)) {
         printk("Creating new PML3.");
@@ -68,8 +69,10 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
         *pml4_entry = PSE_PTR(new_pml3) | flags | PSE_PRESENT;
     }
 
-    pml3_entry_t *pml3_table = (pml3_entry_t *)PSE_GET_PTR(pml4_entry);
+    pml3_entry_t *pml3_table = (pml3_entry_t *)PSE_GET_PTR(*pml4_entry);
     pml3_entry_t *pml3_entry = &(pml3_table[pml3_index]); 
+
+    printk("PML3 @ %x\tPML3[%d] = %x\n", pml3_table, pml3_index, *pml3_entry);
 
     if (*pml3_entry & PSE_PAGESIZE) {
         return EGENERIC;
@@ -84,8 +87,10 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
         *pml3_entry = PSE_PTR(new_pml2) | flags;
     }
 
-    pml2_entry_t *pml2_table = (pml2_entry_t *)PSE_GET_PTR(pml3_entry);
+    pml2_entry_t *pml2_table = (pml2_entry_t *)PSE_GET_PTR(*pml3_entry);
     pml2_entry_t *pml2_entry = &(pml2_table[pml2_index]); // An entry in the pdt which points to one page table
+
+    printk("PML2 @ %x\tPML2[%d] = %x\n", pml2_table, pml2_index, *pml2_entry);
 
     if (*pml2_entry & PSE_PAGESIZE) {
         return EGENERIC;
@@ -100,12 +105,14 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
         *pml2_entry = PSE_PTR(new_pt) | flags;
     }
 
-    pml1_entry_t *pml1_table = (pml1_entry_t *)PSE_GET_PTR(pml2_entry);
+    pml1_entry_t *pml1_table = (pml1_entry_t *)PSE_GET_PTR(*pml2_entry);
     pml1_entry_t *pml1_entry = &(pml1_table[pml1_index]); // An entry in the page table, which points to one 4K page
 
     // Here we don't allocate any memory for the 4K page, because the physical address is already
     // specified in 'phys'.
     // The caller should allocate a frame for the page.
+
+    printk("PML1 is at %x. Setting entry at %x to be %x\n", pml1_table, pml1_entry, PSE_PTR(phys) | flags);
 
     *pml1_entry = PSE_PTR(phys) | flags;
 
@@ -203,7 +210,7 @@ int vmap(int pid, void *pa, void *va, int size, int flags) {
     }
 
     if (flags & VMAP_4K) {
-        return map_page_4k(root_table, (uintptr_t)pa, (uintptr_t)va, mapping_flags);
+        return map_page_4k(root_table, (uintptr_t)pa, (uintptr_t)va, mapping_flags | PSE_PRESENT);
     } else {
         return EIMPL;
     }
