@@ -19,15 +19,10 @@ void _start(void) {
     struct limine_framebuffer *fb = framebuf_req.response->framebuffers[0];
     uint32_t *fb_arr = fb->address;
 
-//     printk("==== Framebuffer:\n\
-// \tAddr: %x\n\
-// \tWidth: %d\n\
-// \tHeight: %d\n\
-// \tPitch: %d\n\
-// \tBits/pixel: %d\n", fb->address, fb->width, fb->height, fb->pitch, fb->bpp);
-
-    for (int i = 0; i < 100; i++) {
-        fb_arr[i * (fb->pitch / 4) + i] = 0xffffff;
+    for (int i = 0; i < 600; i++) {
+        for (int j = 0; j < 800; j++) {
+            fb_arr[(100 + i) * (fb->pitch / 4) + (250 + j)] = i == 0 || j == 0 || i == 599 || j == 799 ? 0xffffff : 0x270057;
+        }
     }
     
     for (;;) {

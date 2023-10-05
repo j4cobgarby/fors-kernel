@@ -41,7 +41,7 @@ void x64_init_virtual_memory() {
 
     printctrl(PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
     printk("Direct map starts at virt %x\n", hhdm_offset);
-    printk("Limine's loaded pml4 table = %x\n", kernel_pml4_table);
+    printk("Limine's loaded pml4 table = %x (CR3 = %x)\n", kernel_pml4_table, get_cr3());
 }
 
 int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsigned int flags) {
@@ -215,18 +215,5 @@ int vmap(int pid, void *pa, void *va, int size, int flags) {
         return map_page_4k(root_table, (uintptr_t)pa, (uintptr_t)va, mapping_flags | PSE_PRESENT);
     } else {
         return EIMPL;
-    }
-}
-
-void *valloc(int pid, int size, unsigned int flags, size_t align) {
-    if (pid == -1) {
-        // Kernel allocation
-        return NULL;
-    } else if (pid >= 0) {
-        // Process allocation not implemented yet
-        return NULL;
-    } else {
-        // Invalid PID.
-        return NULL;
     }
 }

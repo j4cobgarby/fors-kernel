@@ -37,6 +37,9 @@ int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc)
 void *balloc(size_t size, buddy_allocator *alloc);
 void bfree(void *ptr, buddy_allocator *alloc);
 
+void *kalloc(size_t size);
+void kfree(void *ptr);
+
 buddy_block *merge(buddy_allocator *alloc, buddy_block *bl);
 buddy_block *split(buddy_allocator *alloc, buddy_block *bl);
 buddy_block *get_buddy(buddy_allocator *alloc, buddy_block *bl);

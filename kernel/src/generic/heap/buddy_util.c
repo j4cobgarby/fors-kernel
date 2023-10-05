@@ -107,3 +107,11 @@ buddy_block *merge(buddy_allocator *alloc, buddy_block *bl) {
 
     return left_buddy;
 }
+
+void *kalloc(size_t size) {
+    return balloc(size, &kheap_alloc);
+}
+
+void kfree(void *ptr) {
+    bfree(ptr, &kheap_alloc);
+}

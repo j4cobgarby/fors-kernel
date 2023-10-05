@@ -34,7 +34,7 @@ void arch_init_memory() {
 
     idt_init();
 
-    // Find the next memory after the end of kernel memory that is a multiple of WHEAT_MAXSIZE.
+    // Find the next memory after the end of kernel memory that is a multiple of KHEAP_MAXSIZE.
     uint64_t kheap_start = (uint64_t)&_FORS_KERNEL_END & (0xffffffffffffffff << __builtin_ctz(KHEAP_MAXSIZE));
     kheap_start += KHEAP_MAXSIZE;
     
