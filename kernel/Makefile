@@ -37,7 +37,7 @@ LDFLAGS = \
 	-no-pie
 
 NASMFLAGS += \
-    -f elf64
+    -f elf64 -g
 
 CFILES = $(shell find src/generic -type f -name '*.c') $(shell find src/arch/$(ARCH) -type f -name '*.c')
 NASMFILES := $(shell find src/generic -type f -name '*.asm') $(shell find src/arch/$(ARCH) -type f -name '*.asm')

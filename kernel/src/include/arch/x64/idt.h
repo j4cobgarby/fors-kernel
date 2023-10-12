@@ -5,6 +5,25 @@
 
 #include "arch/x64/memory.h"
 
+#define INT_DE 0    // Divide by zero
+#define INT_DB 1    // Debug
+#define INT_NMI 2   // Non-maskable
+#define INT_BP 3    // Breakpoint
+#define INT_OF 4    // Overflow
+#define INT_BR 5    // Bound range exceeded
+#define INT_UD 6    // Invalid opcode
+#define INT_NM 7    // Device not available
+#define INT_DF 8    // Double fault
+#define INT_TS 10   // Invalid TSS
+#define INT_NP 11   // Segment not present
+#define INT_SS 12   // Stack segment fault
+#define INT_GP 13   // General protection
+#define INT_PF 14   // Page fault
+#define INT_MF 16   // x87 FPU error
+#define INT_AC 17   // Alignment check
+#define INT_MC 18   // Machine check
+#define INT_XF 19   // SIMD error
+
 /* An idt_attributes_t type represents the attribute field within an IDT table
  * entry. It contains information about the type of entry this is, which rings
  * can invoke the interrupt, and information relating to the task state segment.
@@ -96,23 +115,31 @@ void idt_load(struct idt_entry* table, int n_entries);
 
 void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t attr, void *handler);
 
-/* Here we declare functions for many of the possible exceptions that can occur, as
- * well as other interrupts. Documentation about exceptions can be found in Vol. 3A,
- * Section 6 of the Intel Developer Manual, or at https://wiki.osdev.org/Exceptions.
- */
-INTERRUPT_HANDLER isr_DE(struct isr_frame *frame);  // 0x00 Division Error
-INTERRUPT_HANDLER isr_NMI(struct isr_frame *frame); // 0x02 Non-Maskable Interrupt
-INTERRUPT_HANDLER isr_BP(struct isr_frame *frame);  // 0x03 Breakpoint
-INTERRUPT_HANDLER isr_OF(struct isr_frame *frame);  // 0x04 Overflow
-INTERRUPT_HANDLER isr_BR(struct isr_frame *frame);  // 0x05 Bound Range Exceeded
-INTERRUPT_HANDLER isr_UD(struct isr_frame *frame);  // 0x06 Invalid Opcode
-INTERRUPT_HANDLER isr_DF(struct isr_frame *frame, uint64_t error_code); // 0x08 Double Fault
-INTERRUPT_HANDLER isr_TS(struct isr_frame *frame, uint64_t error_code); // 0x0a Invalid TSS
-INTERRUPT_HANDLER isr_NP(struct isr_frame *frame, uint64_t error_code); // 0x0b Segment Not Present
-INTERRUPT_HANDLER isr_SS(struct isr_frame *frame, uint64_t error_code); // 0x0c Stack Segment Fault
-INTERRUPT_HANDLER isr_GP(struct isr_frame *frame, uint64_t error_code); // 0x0d General Protection Fault
-INTERRUPT_HANDLER isr_PF(struct isr_frame *frame, uint64_t error_code); // 0x0e Page Fault
+typedef struct interrupt_context_t {
+    uint64_t r15;
+    uint64_t r14;
+    uint64_t r13;
+    uint64_t r12;
+    uint64_t r11;
+    uint64_t r10;
+    uint64_t r9;
+    uint64_t r8;
+    uint64_t rbp;
+    uint64_t rdi;
+    uint64_t rsi;
+    uint64_t rdx;
+    uint64_t rcx;
+    uint64_t rbx;
+    uint64_t rax;
 
-INTERRUPT_HANDLER isr_SYSCALL(struct isr_frame *frame); // 0x32 Syscall
+    uint64_t vector;
+    uint64_t error_code;
+
+    uint64_t rip;
+    uint64_t cs;
+    uint64_t rflags;
+    uint64_t rsp;
+    uint64_t ss;
+} __attribute__((packed)) interrupt_context_t;
 
 #endif /* __INCLUDE_X64_IDT_H__ */

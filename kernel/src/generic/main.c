@@ -24,7 +24,7 @@ void _start(void) {
             fb_arr[(100 + i) * (fb->pitch / 4) + (250 + j)] = i == 0 || j == 0 || i == 599 || j == 799 ? 0xffffff : 0x270057;
         }
     }
-    
+
     for (;;) {
         __asm__("hlt");
     }
