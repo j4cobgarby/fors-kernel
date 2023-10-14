@@ -39,7 +39,7 @@ void arch_init_memory() {
     uint64_t kheap_start = (uint64_t)&_FORS_KERNEL_END & (0xffffffffffffffff << __builtin_ctz(KHEAP_MAXSIZE));
     kheap_start += KHEAP_MAXSIZE;
     
-    printk("Kheap starts at %x (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
+    printk("Kheap starts at %p (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
 
     if (vmap(-1, pfalloc_one(), (void*)kheap_start, ARCH_PAGE_SIZE, VMAP_4K | VMAP_WRIT) < 0) {
         printk("Failed to map in kernel heap.\n");

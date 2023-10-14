@@ -39,7 +39,7 @@ int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc)
 
     buddy_block *root_block = ptr;
 
-    printk("Initialising buddy allocator with root block at %x\n", root_block);
+    printk("Initialising buddy allocator with root block at %p\n", root_block);
 
     if (!root_block) {
         return -1;

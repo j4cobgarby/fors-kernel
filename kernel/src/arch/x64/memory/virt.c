@@ -39,9 +39,8 @@ void x64_init_virtual_memory() {
     kernel_pml4_table = (pml4_entry_t *)(hhdm_request.response->offset + get_cr3());
     hhdm_offset = hhdm_request.response->offset;
 
-    printctrl(PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
-    printk("Direct map starts at virt %x\n", hhdm_offset);
-    printk("Limine's loaded pml4 table = %x (CR3 = %x)\n", kernel_pml4_table, get_cr3());
+    printk("Direct map starts at virt %p\n", hhdm_offset);
+    printk("Limine's loaded pml4 table = %p (CR3 = %#x)\n", kernel_pml4_table, get_cr3());
 }
 
 int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsigned int flags) {
@@ -51,7 +50,6 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     unsigned int pml1_index = EXTRACT_PML1_INDEX(virt);
 
     // printk("==== Mapping 4k page ====\n");
-    // printctrl(PRINTCTRL_SPACERS | PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
     // printk("Indices:\n\tPML4[%d]\n\tPML3[%d]\n\tPML2[%d]\n\tPML1[%d]\n",
     //     pml4_index, pml3_index, pml2_index, pml1_index);
 
@@ -141,16 +139,14 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
 
     unsigned int page_startaddr = 0;
 
-    printctrl(PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
-    printk("==== Looking up mapping from %x\n", virt);
-    printctrl_unset(PRINTCTRL_LEADING_HEX);
+    printk("==== Looking up mapping from %p\n", virt);
 
     if (!(pml4_table[pml4_index] & PSE_PRESENT)) {
         *phys_ret = 0;
         return ENOMAP;
     }
 
-    printk("\tPDPT @ %x\n", PSE_PTR(pml4_table[pml4_index]));
+    printk("\tPDPT @ %p\n", PSE_PTR(pml4_table[pml4_index]));
     pml3_entry_t *pdpt_table = (pml3_entry_t*)(hhdm_offset + PSE_PTR(pml4_table[pml4_index]));
 
     if (!(pdpt_table[pdpt_index] & PSE_PRESENT)) {
@@ -165,7 +161,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
         goto set_addr;
     }
 
-    printk("\tPDT @ %x\n", PSE_PTR(pdpt_table[pdpt_index]));
+    printk("\tPDT @ %p\n", PSE_PTR(pdpt_table[pdpt_index]));
     pml2_entry_t *pdt_table = (pml2_entry_t*)(hhdm_offset + PSE_PTR(pdpt_table[pdpt_index]));
 
     if (!(pdt_table[pdt_index] & PSE_PRESENT)) {
@@ -179,7 +175,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
         goto set_addr;
     }
 
-    printk("\tPT @ %x\n", PSE_PTR(pdt_table[pdt_index]));
+    printk("\tPT @ %p\n", PSE_PTR(pdt_table[pdt_index]));
     pml1_entry_t *page_table = (pml1_entry_t*)(hhdm_offset + PSE_PTR(pdt_table[pdt_index]));
     if (!(page_table[pt_index] & PSE_PRESENT)) {
         *phys_ret = 0;
@@ -190,7 +186,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
     page_offset = EXTRACT_4K_PAGE_OFFSET(virt);
 
 set_addr:
-    printk("\tPage @ %x\n", page_startaddr);
+    printk("\tPage @ %p\n", page_startaddr);
     *phys_ret = page_startaddr + page_offset;
     printk("\tPage offset = %x\n", page_offset);
     printk("\tPhysical address = %x\n", *phys_ret);

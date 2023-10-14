@@ -75,13 +75,12 @@ void x64_init_physical_memory() {
 
     struct limine_memmap_response *mm_resp = memmap_req.response;
 
-    printctrl(PRINTCTRL_LEADING_HEX | PRINTCTRL_SPACERS | PRINTCTRL_RADIX_PREFIX);
-    //printk("Memory map received from Limine:\n");
+    printk("Memory map received from Limine:\n");
     for (int i = mm_resp->entry_count-1; i >= 0; i--) {
         struct limine_memmap_entry *ent = mm_resp->entries[i];
 
-        // printk(" >> [%s]: From %x ==> %x (%dK)\n",
-        //     memtype_strs[ent->type], ent->base, ent->base + ent->length, ent->length / 1024);
+        printk(" >> [%s]: From %p ==> %p (%dK)\n",
+            memtype_strs[ent->type], ent->base, ent->base + ent->length, ent->length / 1024);
 
         if (ent->type == LIMINE_MEMMAP_USABLE) {
             for (int byte = ent->length - ARCH_PAGE_SIZE; byte >= 0; byte -= ARCH_PAGE_SIZE) {
@@ -89,8 +88,6 @@ void x64_init_physical_memory() {
             }
         }
     }
-
-    printctrl(0);
 
     printk("Page frame pool initialised with %d free %d-byte frames.\n", free_frames, ARCH_PAGE_SIZE);
 }
