@@ -50,10 +50,10 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     unsigned int pml2_index = EXTRACT_PML2_INDEX(virt);
     unsigned int pml1_index = EXTRACT_PML1_INDEX(virt);
 
-    printk("==== Mapping 4k page ====\n");
-    printctrl(PRINTCTRL_SPACERS | PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
-    printk("Indices:\n\tPML4[%d]\n\tPML3[%d]\n\tPML2[%d]\n\tPML1[%d]\n",
-        pml4_index, pml3_index, pml2_index, pml1_index);
+    // printk("==== Mapping 4k page ====\n");
+    // printctrl(PRINTCTRL_SPACERS | PRINTCTRL_LEADING_HEX | PRINTCTRL_RADIX_PREFIX);
+    // printk("Indices:\n\tPML4[%d]\n\tPML3[%d]\n\tPML2[%d]\n\tPML1[%d]\n",
+    //     pml4_index, pml3_index, pml2_index, pml1_index);
 
     pml4_entry_t *pml4_entry = &(pml4_table[pml4_index]);
 
@@ -122,7 +122,7 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
     flush_tlb(virt);
 
-    printk("==== Finished Mapping ====\n");
+    // printk("==== Finished Mapping ====\n");
 
     return 0;
 }
