@@ -1,4 +1,5 @@
 #include "fors/printk.h"
+#include "fors/thread.h"
 #include "limine.h"
 
 #include <stdint.h>
@@ -12,6 +13,15 @@ volatile struct limine_framebuffer_request framebuf_req = {
     .revision = 0,
 };
 
+void funky_func(void*) {
+    printk("I am a thread!\n");
+
+    for (;;) {
+        printk("Thread woken.\n");
+        __asm__("hlt");
+    }
+}
+
 void _start(void) {
     arch_early_setup();
     arch_init_memory();
@@ -22,8 +32,10 @@ void _start(void) {
 
     printk("Done.\n");
 
-    int k = 0;
+    int tid = mkthread("JACOB", funky_func, NULL);
+    printk("Created thread with TID %d\n", tid);
 
+    int k = 0;
     for (;;) {
         __asm__("hlt");
         for (int i = 0; i < 256; i++) {

@@ -213,3 +213,10 @@ int vmap(int pid, void *pa, void *va, int size, int flags) {
         return EIMPL;
     }
 }
+
+void *allocate_stack() {
+    // TODO: Make this stack larger than this. It's far too small.
+    // Also, at the moment it's not mapped anywhere. I just wanna get it usable.
+
+    return hhdm_offset + pfalloc_one() + ARCH_PAGE_SIZE;
+}

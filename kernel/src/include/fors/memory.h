@@ -22,6 +22,8 @@ int vunmap(int pid, void *va, int size);
 int vis_mapped_to(int pid, void *va, void *pa);
 void *vget_mapping(int pid, void *va, void *attr_out);
 
+void *allocate_stack();
+
 // Virtual address flags
 #define VMAP_NONE 0
 #define VMAP_EXEC 1 << 0

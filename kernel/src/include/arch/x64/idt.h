@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "arch/x64/memory.h"
+#include "arch/x64/thread_arch.h"
 
 #define INT_DE 0    // Divide by zero
 #define INT_DB 1    // Debug
@@ -111,35 +112,6 @@ struct isr_frame {
 void idt_init();
 void idt_load(struct idt_entry* table, int n_entries);
 
-#define INTERRUPT_HANDLER __attribute__((interrupt)) void
-
 void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t attr, void *handler);
-
-typedef struct interrupt_context_t {
-    uint64_t r15;
-    uint64_t r14;
-    uint64_t r13;
-    uint64_t r12;
-    uint64_t r11;
-    uint64_t r10;
-    uint64_t r9;
-    uint64_t r8;
-    uint64_t rbp;
-    uint64_t rdi;
-    uint64_t rsi;
-    uint64_t rdx;
-    uint64_t rcx;
-    uint64_t rbx;
-    uint64_t rax;
-
-    uint64_t vector;
-    uint64_t error_code;
-
-    uint64_t rip;
-    uint64_t cs;
-    uint64_t rflags;
-    uint64_t rsp;
-    uint64_t ss;
-} __attribute__((packed)) interrupt_context_t;
 
 #endif /* __INCLUDE_X64_IDT_H__ */

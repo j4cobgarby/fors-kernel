@@ -2,10 +2,13 @@
 #include "arch/x64/memory.h"
 #include "arch/x64/pic.h"
 #include "arch/x64/io.h"
+#include "arch/x64/cpu.h"
 
 #include "fors/printk.h"
 
 #include <stdint.h>
+
+#include "fors/thread.h"
 
 struct idt_entry idt_table[IDT_N_ENTRIES];
 
@@ -78,7 +81,9 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
     idt_table[vector] = INIT_IDT_ENTRY(seg, attr, (uint64_t)handler);
 }
 
-void *interrupt_dispatch(interrupt_context_t *ctx) {
+void *interrupt_dispatch(register_ctx_x64 *ctx) {
+    static int switched = 0;
+
     int sc;    
     switch (ctx->vector) {
         case INT_PF:
@@ -97,6 +102,12 @@ void *interrupt_dispatch(interrupt_context_t *ctx) {
             if (sc != 0xee)
                 outb(0x60, 0xee);
             pic_eoi(1);
+
+            if (!switched) {
+                switched = 1;
+                return &threads[0].ctx;
+            }
+
             break;
         
         default:

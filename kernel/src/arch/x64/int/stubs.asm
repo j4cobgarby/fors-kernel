@@ -18,12 +18,12 @@ isr_general:
     push    r15
 
     mov     rdi, rsp    ; RDI is the first argument to the C function interrupt_dispatch
-                        ; which expects a `interrupt_context_t *` type. That structure is
+                        ; which expects a `register_ctx_x64 *` type. That structure is
                         ; defined so that it matches the stack at this point in execution,
                         ; so the stack pointer can be interpreted as this type.
     call    interrupt_dispatch
     mov     rsp, rax    ; Set registers to whatever interrupt_dispatch returns (again as
-                        ; a `interrupt_context_t *` type.
+                        ; a `register_ctx_x64 *` type.
 
     pop     r15
     pop     r14
