@@ -46,12 +46,11 @@ isr_general:
                         ; just takes those two things away so that iret sees what the CPU
                         ; originally pushed.
 
-    iret
+    iretq
 
 %macro  isr_errorcode 1
 extern __isr_%1
 __isr_%1:
-    xchg bx, bx
     ; (When the particular interrupt type has an error code, this is pushed by the CPU before entering here.)
     push qword %1       ; Just push the vector number
     jmp isr_general     ; isr_general does most of the work getting to the C code
@@ -60,7 +59,6 @@ __isr_%1:
 %macro isr_noerror 1
 extern __isr_%1
 __isr_%1:
-    xchg bx, bx
     push qword 0        ; Fake error code, to account for the CPU not pushing one
     push qword %1
     jmp isr_general
@@ -92,3 +90,6 @@ isr_errorcode 12
 isr_errorcode 13
 isr_errorcode 14
 isr_errorcode 17
+
+; PIC mapping starts at 32
+isr_noerror 33 ; keyboard
