@@ -1,6 +1,8 @@
 #include "arch/x64/idt.h"
 #include "arch/x64/memory.h"
 #include "arch/x64/pic.h"
+#include "arch/x64/io.h"
+
 #include "fors/printk.h"
 
 #include <stdint.h>
@@ -77,12 +79,11 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
 }
 
 void *interrupt_dispatch(interrupt_context_t *ctx) {
-    printk("Handling interrupt vector %d.\n", ctx->vector);
-    
+    int sc;    
     switch (ctx->vector) {
         case INT_PF:
-            printk("Page fault!\n");
-            break;
+            printk("#PF(%d) :( Halting.\n", ctx->error_code);
+            for (;;) __asm__("hlt");
         case INT_GP:
             printk("#GP(%d) :( Halting.\n", ctx->error_code);
             for (;;) __asm__("hlt");
@@ -91,15 +92,17 @@ void *interrupt_dispatch(interrupt_context_t *ctx) {
             for (;;) __asm__("hlt");
 
         case PIC_FIRST_VECTOR + 1:
-            printk("Keyboard press.\n");
+            sc = inb(0x60);
+            printk("Keyboard press (%d)\n", sc);
+            if (sc != 0xee)
+                outb(0x60, 0xee);
             pic_eoi(1);
             break;
         
         default:
-            printk("Unhandled interrupt.\n");
+            printk("Unhandled interrupt <%d>\n", ctx->vector);
             for (;;) __asm__("hlt");
     }
 
     return ctx;
-}//jellyglobsquishfloob
-//<3<3
+}
