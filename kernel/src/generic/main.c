@@ -20,14 +20,17 @@ void _start(void) {
     struct limine_framebuffer *fb = framebuf_req.response->framebuffers[0];
     uint32_t *fb_arr = fb->address;
 
-    for (int i = 0; i < 600; i++) {
-        for (int j = 0; j < 800; j++) {
-            fb_arr[(100 + i) * (fb->pitch / 4) + (250 + j)] = i == 0 || j == 0 || i == 599 || j == 799 ? 0xffffff : 0x270057;
-        }
-    }
-
     printk("Done.\n");
+
+    int k = 0;
+
     for (;;) {
         __asm__("hlt");
+        for (int i = 0; i < 256; i++) {
+            for (int j = 0; j < 256; j++) {
+                fb_arr[i * fb->pitch/4 + j] = (i % 256 << (k ? 0 : 8)) + (j % 256 << (k ? 8 : 16));
+            }
+        }
+        k = !k;
     }
 }
