@@ -1,5 +1,6 @@
 #include "arch/x64/idt.h"
 #include "arch/x64/memory.h"
+#include "arch/x64/pic.h"
 #include "fors/printk.h"
 
 #include <stdint.h>
@@ -18,6 +19,8 @@ extern void *__isr_7;
 extern void *__isr_16;
 extern void *__isr_18;
 extern void *__isr_19;
+
+extern void *__isr_33;
 
 // ISRs _with_ CPU-pushed error codes
 extern void *__isr_8;
@@ -49,6 +52,9 @@ void idt_init() {
     idt_attach_handler(16, isr_seg, isr_attr, &__isr_16);
     idt_attach_handler(18, isr_seg, isr_attr, &__isr_18);
     idt_attach_handler(19, isr_seg, isr_attr, &__isr_19);
+
+    idt_attach_handler(33, isr_seg, isr_attr, &__isr_33); // Keyboard
+
     idt_attach_handler(8, isr_seg, isr_attr, &__isr_8);
     idt_attach_handler(10, isr_seg, isr_attr, &__isr_10);
     idt_attach_handler(11, isr_seg, isr_attr, &__isr_11);
@@ -77,11 +83,23 @@ void *interrupt_dispatch(interrupt_context_t *ctx) {
         case INT_PF:
             printk("Page fault!\n");
             break;
+        case INT_GP:
+            printk("#GP(%d) :( Halting.\n", ctx->error_code);
+            for (;;) __asm__("hlt");
         case INT_DE:
             printk("Division by zero.\n");
             for (;;) __asm__("hlt");
+
+        case PIC_FIRST_VECTOR + 1:
+            printk("Keyboard press.\n");
+            pic_eoi(1);
             break;
+        
+        default:
+            printk("Unhandled interrupt.\n");
+            for (;;) __asm__("hlt");
     }
 
     return ctx;
-}
+}//jellyglobsquishfloob
+//<3<3

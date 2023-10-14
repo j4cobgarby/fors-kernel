@@ -30,6 +30,7 @@ extern const void *_FORS_KERNEL_END; // Defined in linker.ld as the end of the v
 void arch_init_memory() {
     x64_init_physical_memory();
     x64_init_virtual_memory();
+
     x64_init_gdt();
 
     idt_init();

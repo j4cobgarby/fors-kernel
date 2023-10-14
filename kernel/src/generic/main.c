@@ -15,6 +15,7 @@ volatile struct limine_framebuffer_request framebuf_req = {
 void _start(void) {
     arch_early_setup();
     arch_init_memory();
+    arch_late_setup();
 
     struct limine_framebuffer *fb = framebuf_req.response->framebuffers[0];
     uint32_t *fb_arr = fb->address;
@@ -25,6 +26,7 @@ void _start(void) {
         }
     }
 
+    printk("Done.\n");
     for (;;) {
         __asm__("hlt");
     }
