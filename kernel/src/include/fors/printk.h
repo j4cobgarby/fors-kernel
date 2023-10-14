@@ -3,6 +3,8 @@
 
 #include <stdarg.h>
 
+#define PRINTK_HIGHLIGHT_FORMATS 1
+
 #define TRACE() printk("*** TRACE() at %s:%d [%s]\n", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define TRACE_MSG(msg) printk("*** " msg " at %s:%d [%s]\n", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 

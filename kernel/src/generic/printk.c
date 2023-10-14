@@ -243,7 +243,11 @@ void printk(const char *restrict fmt, ...) {
             kputc(*fmt++);
         } else {
             fmt = parse_conversion(fmt, &spec);
-            
+
+            #ifdef PRINTK_HIGHLIGHT_FORMATS
+            kputs("\x1b[36m");
+            #endif
+
             switch (spec.convspec) {
                 case 's':
                     kputs(va_arg(ap, const char *));
@@ -254,15 +258,19 @@ void printk(const char *restrict fmt, ...) {
                 case 'd':
                     print_i64(va_arg(ap, int64_t), &spec);
                     break;
-                // case 'u':
-                //     print_i64(va_arg(ap, uint64_t), &spec);
-                //     break;
+                case 'u':
+                    print_i64(va_arg(ap, uint64_t), &spec);
+                    break;
                 case 'x':
                     print_u64_hex(va_arg(ap, uint64_t), false, &spec);
                     break;
                 case 'p':
                     print_u64_hex(va_arg(ap, uint64_t), false, &spec);
+                    break;
             }
+            #ifdef PRINTK_HIGHLIGHT_FORMATS
+            kputs("\x1b[37m");
+            #endif
         }
     }
 }
