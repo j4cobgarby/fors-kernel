@@ -24,6 +24,7 @@ int x64_uart_init() {
         if (com_port_setup(&com_ports[i], 3) == 0) {
             if (!uart_port) uart_port = &(com_ports[i]);
 
+            com_sends(com_ports[i], "=======*** Welcome to Fors ***=======\n");
             com_sends(com_ports[i], "You have been detected as a working UART port.\n");
         }
     }
