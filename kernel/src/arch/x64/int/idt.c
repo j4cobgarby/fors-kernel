@@ -83,6 +83,7 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
 
 void *interrupt_dispatch(register_ctx_x64 *ctx) {
     static int switched = 0;
+    static register_ctx_x64 *saved_ctx;
 
     int sc;    
     switch (ctx->vector) {
@@ -98,14 +99,18 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
 
         case PIC_FIRST_VECTOR + 1:
             sc = inb(0x60);
-            printk("Keyboard press (%d)\n", sc);
-            if (sc != 0xee)
-                outb(0x60, 0xee);
             pic_eoi(1);
 
-            if (!switched) {
-                switched = 1;
-                return &threads[0].ctx;
+            if (!(sc & 0x80)) {
+                printk("Keyboard downpress (%x)\n", sc);
+                if (!switched) {
+                    switched = 1;
+                    saved_ctx = ctx;
+                    return &threads[0].ctx;
+                } else {
+                    switched = 0;
+                    return saved_ctx;
+                }
             }
 
             break;

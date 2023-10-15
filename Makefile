@@ -19,11 +19,10 @@ debug: $(IMG_PREF).iso
 gdb: $(BUILD)/iso/fors.elf
 	gdb $< -ex "target remote :1234"
 
-.PHONY: kernel
-kernel:
+$(ELF_EXE):
 	make -C kernel
 
-$(IMG_PREF).iso: kernel
+$(IMG_PREF).iso: $(ELF_EXE)
 	rm -rf $(BUILD)/iso
 
 	mkdir -p $(BUILD)/iso

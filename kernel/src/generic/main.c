@@ -14,10 +14,18 @@ volatile struct limine_framebuffer_request framebuf_req = {
 };
 
 void funky_func(void*) {
+    struct limine_framebuffer *fb = framebuf_req.response->framebuffers[0];
+    uint32_t *fb_arr = fb->address;
+
     printk("I am a thread!\n");
 
     for (;;) {
         printk("Thread woken.\n");
+        for (int i = 0; i < 256; i++) {
+            for (int j = 0; j < 256; j++) {
+                fb_arr[i * fb->pitch/4 + j] = (i % 256 << 0) + (j % 256 << 8);
+            }
+        }
         __asm__("hlt");
     }
 }
@@ -32,17 +40,16 @@ void _start(void) {
 
     printk("Done.\n");
 
-    int tid = mkthread("JACOB", funky_func, NULL);
+    int tid = mkthread("Funky Function", funky_func, NULL);
     printk("Created thread with TID %d\n", tid);
 
-    int k = 0;
     for (;;) {
         __asm__("hlt");
+        printk("Back to main thread!\n");
         for (int i = 0; i < 256; i++) {
             for (int j = 0; j < 256; j++) {
-                fb_arr[i * fb->pitch/4 + j] = (i % 256 << (k ? 0 : 8)) + (j % 256 << (k ? 8 : 16));
+                fb_arr[i * fb->pitch/4 + j] = (i % 256 << 8) + (j % 256 << 16);
             }
         }
-        k = !k;
     }
 }
