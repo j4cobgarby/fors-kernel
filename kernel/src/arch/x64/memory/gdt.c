@@ -22,7 +22,15 @@ struct gdt_descriptor_long gdt_table[] = {
         | SEG_AB_CODE_DATA 
         | SEG_AB_RW,
         
-          SEG_FLAG_4K_BLOCKS)
+          SEG_FLAG_4K_BLOCKS),
+
+    INIT_SEG_DESCRIPTOR(0l, 0l, 
+        SEG_AB_PRESENT | SEG_AB_DPL(3) | SEG_AB_CODE_DATA | SEG_AB_EXEC | SEG_AB_RW, 
+        SEG_FLAG_LONG | SEG_FLAG_4K_BLOCKS),
+
+    INIT_SEG_DESCRIPTOR(0l, 0l, 
+        SEG_AB_PRESENT | SEG_AB_DPL(3) | SEG_AB_CODE_DATA | SEG_AB_RW,
+        SEG_FLAG_4K_BLOCKS),
 };
 
 struct gdtr_image gdtr;
