@@ -49,9 +49,9 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     unsigned int pml2_index = EXTRACT_PML2_INDEX(virt);
     unsigned int pml1_index = EXTRACT_PML1_INDEX(virt);
 
-    // printk("==== Mapping 4k page ====\n");
-    // printk("Indices:\n\tPML4[%d]\n\tPML3[%d]\n\tPML2[%d]\n\tPML1[%d]\n",
-    //     pml4_index, pml3_index, pml2_index, pml1_index);
+    printk("==== Mapping 4k page ====\n");
+    printk("Indices: PML4[%d] -> PML3[%d] -> PML2[%d] -> PML1[%d]\n",
+        pml4_index, pml3_index, pml2_index, pml1_index);
 
     pml4_entry_t *pml4_entry = &(pml4_table[pml4_index]);
 
@@ -66,8 +66,10 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
         zero_paging_table(new_pml3);
 
-        *pml4_entry = PSE_PTR(new_pml3) | flags | PSE_PRESENT;
+        *pml4_entry = PSE_PTR(new_pml3);
     }
+    
+    *pml4_entry |= flags | PSE_PRESENT;
 
     pml3_entry_t *pml3_table = (pml3_entry_t *)PSE_GET_PTR(*pml4_entry);
     pml3_entry_t *pml3_entry = &(pml3_table[pml3_index]); 
@@ -86,8 +88,10 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
         zero_paging_table(new_pml2);
         
-        *pml3_entry = PSE_PTR(new_pml2) | flags;
+        *pml3_entry = PSE_PTR(new_pml2);
     }
+
+    *pml3_entry |= flags | PSE_PRESENT;
 
     pml2_entry_t *pml2_table = (pml2_entry_t *)PSE_GET_PTR(*pml3_entry);
     pml2_entry_t *pml2_entry = &(pml2_table[pml2_index]); // An entry in the pdt which points to one page table
@@ -106,8 +110,10 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
         zero_paging_table(new_pml1);
 
-        *pml2_entry = PSE_PTR(new_pml1) | flags;
+        *pml2_entry = PSE_PTR(new_pml1);
     }
+
+    *pml2_entry |= flags | PSE_PRESENT;
 
     pml1_entry_t *pml1_table = (pml1_entry_t *)PSE_GET_PTR(*pml2_entry);
     pml1_entry_t *pml1_entry = &(pml1_table[pml1_index]); // An entry in the page table, which points to one 4K page
@@ -120,7 +126,7 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
     flush_tlb(virt);
 
-    // printk("==== Finished Mapping ====\n");
+    printk("==== Finished Mapping ====\n");
 
     return 0;
 }
