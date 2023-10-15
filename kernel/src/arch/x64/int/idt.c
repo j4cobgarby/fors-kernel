@@ -4,13 +4,17 @@
 #include "arch/x64/io.h"
 #include "arch/x64/cpu.h"
 
+#include "fors/memory.h"
 #include "fors/printk.h"
+#include "fors/thread.h"
+
+#include "forslib/string.h"
 
 #include <stdint.h>
 
-#include "fors/thread.h"
 
 struct idt_entry idt_table[IDT_N_ENTRIES];
+tss_t tss;
 
 // ISRs without CPU-pushed error codes
 extern void *__isr_0;
@@ -67,6 +71,9 @@ void idt_init() {
     idt_attach_handler(13, isr_seg, isr_attr, &__isr_13);
     idt_attach_handler(14, isr_seg, isr_attr, &__isr_14);
     idt_attach_handler(17, isr_seg, isr_attr, &__isr_17);
+
+    memset(&tss, 0, sizeof(tss_t));
+    tss.rsp0 = (uint64_t)allocate_stack();
 }
 
 void idt_load(struct idt_entry* table, int n_entries) {
@@ -82,9 +89,6 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
 }
 
 void *interrupt_dispatch(register_ctx_x64 *ctx) {
-    static int switched = 0;
-    static register_ctx_x64 *saved_ctx;
-
     int sc;    
     switch (ctx->vector) {
         case INT_PF:
@@ -102,15 +106,8 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             pic_eoi(1);
 
             if (!(sc & 0x80)) {
-                printk("Keyboard downpress (%x)\n", sc);
-                if (!switched) {
-                    switched = 1;
-                    saved_ctx = ctx;
-                    return &threads[0].ctx;
-                } else {
-                    switched = 0;
-                    return saved_ctx;
-                }
+                printk("Keyboard downpress (%#x)\n", sc);
+                return &threads[0].ctx;
             }
 
             break;

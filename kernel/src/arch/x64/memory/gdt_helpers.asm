@@ -9,6 +9,12 @@ extern reload_seg_registers
 load_gdt:
     cli
     lgdt [gdtr]
+
+    push rdx
+    mov dx, 0x28
+    ltr dx
+    pop rdx
+    
     ret
 
 reload_seg_registers:

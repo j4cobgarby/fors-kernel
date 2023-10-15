@@ -66,7 +66,6 @@ typedef uint64_t cr3_image;
 #define PSE_PT_PAT      1L << 12 // PAT bit is in a different place specifically for page table entries
 #define PSE_XD          1L << 63
 
-
 #define HH_MASK 0xffff'8000'0000'0000
 #define ENFORCE_HH_CANONICAL(ptr)   ((ptr) | HH_MASK)
 #define ENFORCE_LH_CANONICAL(ptr)   ((ptr) & ~HH_MASK)
@@ -76,7 +75,7 @@ typedef uint64_t cr3_image;
 typedef uint64_t pml4_entry_t; // References a page directory pointer table
 typedef uint64_t pml3_entry_t; // References a page directory
 typedef uint64_t pml2_entry_t; // References a page table
-typedef uint64_t pml1_entry_t;
+typedef uint64_t pml1_entry_t; // References a physical page
 
 #define EXTRACT_4K_PAGE_OFFSET(vaddr) (vaddr & 0xfff)
 #define EXTRACT_2M_PAGE_OFFSET(vaddr) (vaddr & 0x1fffff)
@@ -96,10 +95,30 @@ struct __attribute__((packed)) gdt_descriptor_long {
     uint8_t  base_24_31;
 };
 
-extern struct gdt_descriptor_long gdt_table[];
+struct __attribute__((packed)) tss_second_half {
+    uint32_t base_32_63;
+    uint32_t reserved;
+};
+
+typedef union gdt_table_entry {
+    struct {
+        uint16_t limit_0_15;
+        uint16_t base_0_15;
+        uint8_t  base_16_23;
+        uint8_t  access_byte;
+        uint8_t  limit_16_19_and_flags;
+        uint8_t  base_24_31;
+    };
+    struct {
+        uint32_t base_32_63;
+        uint32_t reserved;
+    };
+} gdt_table_entry;
+
+extern gdt_table_entry gdt_table[];
 
 #define INIT_SEG_DESCRIPTOR(base, limit, access, flags) \
-    (struct gdt_descriptor_long) { \
+    (gdt_table_entry) { \
         .limit_0_15 = (limit) & 0xffff, \
         .base_0_15  = (base) & 0xffff, \
         .base_16_23 = ((base)>>16) & 0xff, \
@@ -108,9 +127,24 @@ extern struct gdt_descriptor_long gdt_table[];
         .base_24_31 = ((base)>>24) & 0xff, \
     }
 
+#define INIT_TSS_DESCRIPTOR_FIRST_HALF(base, limit) \
+    (gdt_table_entry) { \
+        .limit_0_15 = (limit) & 0xffff, \
+        .base_0_15  = (base) & 0xffff, \
+        .base_16_23 = ((base)>>16) & 0xff, \
+        .access_byte = 0b10001001, \
+        .limit_16_19_and_flags = (((limit)>>16) & 0xf) | ((0b1000) << 4), \
+        .base_24_31 = ((base)>>24) & 0xff, \
+    }
+
+#define INIT_TSS_DESCRIPTOR_SECOND_HALF(base) \
+    (gdt_table_entry) { \
+        .base_32_63 = ((base)>>32) & 0xffffffff, \
+        .reserved = 0 }
+
 struct __attribute__((packed)) gdtr_image {
     uint16_t limit;
-    struct gdt_descriptor_long *base;
+    gdt_table_entry *base;
 };
 
 #define SEG_AB_ACCESSED     1 << 0
