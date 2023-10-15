@@ -7,6 +7,7 @@ LD = ld
 
 CFLAGS = -Wall -Wextra  	\
 	-std=c2x			 	\
+    -nostdlib               \
 	-ffreestanding		 	\
 	-fno-stack-protector 	\
     -fno-stack-check     	\

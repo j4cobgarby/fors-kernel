@@ -20,7 +20,7 @@ typedef enum thread_status {
 typedef struct thread {
     bool present; // Present in thread array?
 
-    unsigned long tid; // Unique ID
+    long tid; // Unique ID
     char name[THREAD_NAME_LENGTH]; // Not necessarily unique name string
 
     thread_status status;
@@ -33,7 +33,7 @@ typedef struct thread {
 extern thread threads[MAX_THREADS];
 
 // Finds a free TID, -1 if none available.
-unsigned long find_free_tid();
+long find_free_tid();
 
 int mkthread(char *name, void(*entry)(void*), void *arg);
 

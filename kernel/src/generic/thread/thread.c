@@ -3,7 +3,7 @@
 
 thread threads[MAX_THREADS];
 
-unsigned long find_free_tid() {
+long find_free_tid() {
     for (size_t i = 0; i < MAX_THREADS; i++) {
         if (!threads[i].present) return i;
     }

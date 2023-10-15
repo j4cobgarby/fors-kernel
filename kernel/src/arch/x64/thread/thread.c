@@ -1,11 +1,12 @@
 #include "fors/thread.h"
+#include "fors/memory.h"
 #include "arch/x64/cpu.h"
 #include "arch/x64/memory.h"
-#include "fors/memory.h"
+#include "forslib/string.h" // IWYU pragma: keep: clangd keeps thinking this header is not used without this pragma
 
 int mkthread(char *name, void (*entry)(void *), void *arg) {
     thread *th;
-    unsigned long tid = find_free_tid();
+    long tid = find_free_tid();
 
     if (tid < 0) {
         return -1;
@@ -14,6 +15,7 @@ int mkthread(char *name, void (*entry)(void *), void *arg) {
         th->tid = tid;
         th->present = true;
         th->status = THR_READY;
+        strncpy(th->name, name, THREAD_NAME_LENGTH);
 
         th->ctx.cs = KERNEL_CS;
         th->ctx.ss = KERNEL_SS;
