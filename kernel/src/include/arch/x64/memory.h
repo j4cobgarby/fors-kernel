@@ -40,8 +40,11 @@ union segment_selector {
     } element;
 };
 
-#define TABLE_GDT 0
-#define TABLE_LDT 1
+#define TABLE_GDT   0
+#define TABLE_LDT   1
+
+#define KERNEL_CS   0x08 // RPL=0, TABLE=GDT, ENTRY=0x08 (index 1)
+#define KERNEL_SS   0x10 // RPL=0, TABLE=GDT, ENTRY=0x10 (index 0x10/8 = 2)
 
 typedef uint64_t cr3_image;
 

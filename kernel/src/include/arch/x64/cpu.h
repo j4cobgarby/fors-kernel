@@ -30,4 +30,8 @@ typedef struct register_ctx_x64 {
     uint64_t ss;
 } __attribute__((packed)) register_ctx_x64;
 
+#define RFLAGS_BASE (1 << 1) // Necessary bit set
+#define RFLAGS_IF   (1 << 9) // Interrupt enable
+#define RFLAGS_IOPL(lvl) ((lvl & 0x3) << 12)
+
 #endif /* __INCLUDE_X64_CPU_H__ */

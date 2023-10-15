@@ -1,4 +1,6 @@
 #include "fors/thread.h"
+#include "arch/x64/cpu.h"
+#include "arch/x64/memory.h"
 #include "fors/memory.h"
 
 int mkthread(char *name, void (*entry)(void *), void *arg) {
@@ -13,9 +15,9 @@ int mkthread(char *name, void (*entry)(void *), void *arg) {
         th->present = true;
         th->status = THR_READY;
 
-        th->ctx.cs = 0x08;
-        th->ctx.ss = 0x10;
-        th->ctx.rflags = 0x202;
+        th->ctx.cs = KERNEL_CS;
+        th->ctx.ss = KERNEL_SS;
+        th->ctx.rflags = RFLAGS_BASE | RFLAGS_IF;
 
         th->ctx.rsp = (uint64_t)allocate_stack();
         th->ctx.rip = (uint64_t)entry;
