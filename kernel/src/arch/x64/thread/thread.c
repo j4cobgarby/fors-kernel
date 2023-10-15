@@ -4,7 +4,7 @@
 #include "arch/x64/memory.h"
 #include "forslib/string.h" // IWYU pragma: keep: clangd keeps thinking this header is not used without this pragma
 
-int mkthread(char *name, void (*entry)(void *), void *arg) {
+int mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user) {
     thread *th;
     long tid = find_free_tid();
 
@@ -17,11 +17,21 @@ int mkthread(char *name, void (*entry)(void *), void *arg) {
         th->status = THR_READY;
         strncpy(th->name, name, THREAD_NAME_LENGTH);
 
-        th->ctx.cs = KERNEL_CS;
-        th->ctx.ss = KERNEL_SS;
+        if (user) {
+            th->ctx.cs = USER_CS;
+            th->ctx.ss = USER_SS;
+        } else {
+            th->ctx.cs = KERNEL_CS;
+            th->ctx.ss = KERNEL_SS;
+        }
         th->ctx.rflags = RFLAGS_BASE | RFLAGS_IF;
 
-        th->ctx.rsp = (uint64_t)allocate_stack();
+        if (stack) {
+            th->ctx.rsp = (uint64_t)stack;
+        } else {
+            th->ctx.rsp = (uint64_t)allocate_stack();
+        }
+
         th->ctx.rip = (uint64_t)entry;
         th->ctx.rdi = (uint64_t)arg;
 

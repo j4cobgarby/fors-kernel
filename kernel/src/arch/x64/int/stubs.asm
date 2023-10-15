@@ -46,6 +46,8 @@ isr_general:
                         ; just takes those two things away so that iret sees what the CPU
                         ; originally pushed.
 
+    xchg bx, bx
+
     iretq
 
 %macro  isr_errorcode 1
