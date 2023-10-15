@@ -37,6 +37,4 @@ size_t  strcspn(const char *, const char *);
 size_t  strlen(const char *);
 size_t  strnlen(const char *, size_t);
 
-void x();
-
 #endif /* __INCLUDE_FORSLIB_STRING_H__ */
