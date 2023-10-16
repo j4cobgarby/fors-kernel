@@ -95,3 +95,6 @@ isr_errorcode 17
 
 ; PIC mapping starts at 32
 isr_noerror 33 ; keyboard
+
+; Syscall
+isr_noerror 240

@@ -31,6 +31,8 @@ extern void *__isr_19;
 
 extern void *__isr_33;
 
+extern void *__isr_240; // 0xf0 syscall
+
 // ISRs _with_ CPU-pushed error codes
 extern void *__isr_8;
 extern void *__isr_10;
@@ -64,6 +66,8 @@ void idt_init() {
 
     idt_attach_handler(33, isr_seg, isr_attr, &__isr_33); // Keyboard
 
+    idt_attach_handler(240, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_240);
+
     idt_attach_handler(8, isr_seg, isr_attr, &__isr_8);
     idt_attach_handler(10, isr_seg, isr_attr, &__isr_10);
     idt_attach_handler(11, isr_seg, isr_attr, &__isr_11);
@@ -89,6 +93,8 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
 }
 
 void *interrupt_dispatch(register_ctx_x64 *ctx) {
+    static int gone_to_user = 0;
+
     int sc;    
     switch (ctx->vector) {
         case INT_PF:
@@ -106,8 +112,12 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             pic_eoi(1);
 
             if (!(sc & 0x80)) {
-                printk("Keyboard downpress (%#x)\n", sc);
-                return &threads[0].ctx;
+                printk("Keystroke (%#x)\n", sc);
+                if (gone_to_user) return ctx;
+                else {
+                    gone_to_user = 1;
+                    return &threads[0].ctx;
+                }
             }
 
             break;

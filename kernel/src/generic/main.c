@@ -19,6 +19,8 @@ volatile struct limine_framebuffer_request framebuf_req = {
 void funky_func(void*) {
     __asm__ ("xchg %bx, %bx");
 
+    __asm__ ("int $0xf0");
+
     for (;;);
 
     // struct limine_framebuffer *fb = framebuf_req.response->framebuffers[0];
