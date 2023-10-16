@@ -49,9 +49,9 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     unsigned int pml2_index = EXTRACT_PML2_INDEX(virt);
     unsigned int pml1_index = EXTRACT_PML1_INDEX(virt);
 
-    printk("==== Mapping 4k page ====\n");
-    printk("Indices: PML4[%d] -> PML3[%d] -> PML2[%d] -> PML1[%d]\n",
-        pml4_index, pml3_index, pml2_index, pml1_index);
+    // printk("==== Mapping 4k page ====\n");
+    // printk("Indices: PML4[%d] -> PML3[%d] -> PML2[%d] -> PML1[%d]\n",
+    //     pml4_index, pml3_index, pml2_index, pml1_index);
 
     pml4_entry_t *pml4_entry = &(pml4_table[pml4_index]);
 
@@ -126,7 +126,7 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
 
     flush_tlb(virt);
 
-    printk("==== Finished Mapping ====\n");
+    // printk("==== Finished Mapping ====\n");
 
     return 0;
 }
@@ -145,7 +145,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
 
     unsigned int page_startaddr = 0;
 
-    printk("==== Looking up mapping from %p\n", virt);
+    // printk("==== Looking up mapping from %p\n", virt);
 
     if (!(pml4_table[pml4_index] & PSE_PRESENT)) {
         *phys_ret = 0;
@@ -192,10 +192,10 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret) {
     page_offset = EXTRACT_4K_PAGE_OFFSET(virt);
 
 set_addr:
-    printk("\tPage @ %p\n", page_startaddr);
+    // printk("\tPage @ %p\n", page_startaddr);
     *phys_ret = page_startaddr + page_offset;
-    printk("\tPage offset = %x\n", page_offset);
-    printk("\tPhysical address = %x\n", *phys_ret);
+    // printk("\tPage offset = %x\n", page_offset);
+    // printk("\tPhysical address = %x\n", *phys_ret);
     return 0;
 }
 
