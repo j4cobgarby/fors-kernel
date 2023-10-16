@@ -17,30 +17,30 @@ struct idt_entry idt_table[IDT_N_ENTRIES];
 tss_t tss;
 
 // ISRs without CPU-pushed error codes
-extern void *__isr_0;
-extern void *__isr_1;
-extern void *__isr_2;
-extern void *__isr_3;
-extern void *__isr_4;
-extern void *__isr_5;
-extern void *__isr_6;
-extern void *__isr_7;
-extern void *__isr_16;
-extern void *__isr_18;
-extern void *__isr_19;
+extern void *__isr_0x00;
+extern void *__isr_0x01;
+extern void *__isr_0x02;
+extern void *__isr_0x03;
+extern void *__isr_0x04;
+extern void *__isr_0x05;
+extern void *__isr_0x06;
+extern void *__isr_0x07;
+extern void *__isr_0x10;
+extern void *__isr_0x12;
+extern void *__isr_0x13;
 
-extern void *__isr_33;
+extern void *__isr_0x21; // Keyboard
 
-extern void *__isr_240; // 0xf0 syscall
+extern void *__isr_0xf0; // 0xf0 syscall
 
 // ISRs _with_ CPU-pushed error codes
-extern void *__isr_8;
-extern void *__isr_10;
-extern void *__isr_11;
-extern void *__isr_12;
-extern void *__isr_13;
-extern void *__isr_14;
-extern void *__isr_17;
+extern void *__isr_0x08;
+extern void *__isr_0x0a;
+extern void *__isr_0x0b;
+extern void *__isr_0x0c;
+extern void *__isr_0x0d;
+extern void *__isr_0x0e;
+extern void *__isr_0x11;
 
 void idt_init() {
     idt_load(idt_table, IDT_N_ENTRIES);
@@ -52,29 +52,29 @@ void idt_init() {
 
     idt_attributes_t isr_attr = INIT_IDT_ATTRIBUTES(0, IDT_ATTRIBUTES_TYPE_TRAP, 0);
 
-    idt_attach_handler(0, isr_seg, isr_attr, &__isr_0);
-    idt_attach_handler(1, isr_seg, isr_attr, &__isr_1);
-    idt_attach_handler(2, isr_seg, isr_attr, &__isr_2);
-    idt_attach_handler(3, isr_seg, isr_attr, &__isr_3);
-    idt_attach_handler(4, isr_seg, isr_attr, &__isr_4);
-    idt_attach_handler(5, isr_seg, isr_attr, &__isr_5);
-    idt_attach_handler(6, isr_seg, isr_attr, &__isr_6);
-    idt_attach_handler(7, isr_seg, isr_attr, &__isr_7);
-    idt_attach_handler(16, isr_seg, isr_attr, &__isr_16);
-    idt_attach_handler(18, isr_seg, isr_attr, &__isr_18);
-    idt_attach_handler(19, isr_seg, isr_attr, &__isr_19);
+    idt_attach_handler(0x00, isr_seg, isr_attr, &__isr_0x00);
+    idt_attach_handler(0x01, isr_seg, isr_attr, &__isr_0x01);
+    idt_attach_handler(0x02, isr_seg, isr_attr, &__isr_0x02);
+    idt_attach_handler(0x03, isr_seg, isr_attr, &__isr_0x03);
+    idt_attach_handler(0x04, isr_seg, isr_attr, &__isr_0x04);
+    idt_attach_handler(0x05, isr_seg, isr_attr, &__isr_0x05);
+    idt_attach_handler(0x06, isr_seg, isr_attr, &__isr_0x06);
+    idt_attach_handler(0x07, isr_seg, isr_attr, &__isr_0x07);
+    idt_attach_handler(0x10, isr_seg, isr_attr, &__isr_0x10);
+    idt_attach_handler(0x12, isr_seg, isr_attr, &__isr_0x12);
+    idt_attach_handler(0x13, isr_seg, isr_attr, &__isr_0x13);
 
-    idt_attach_handler(33, isr_seg, isr_attr, &__isr_33); // Keyboard
+    idt_attach_handler(0x21, isr_seg, isr_attr, &__isr_0x21); // Keyboard
 
-    idt_attach_handler(240, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_240);
+    idt_attach_handler(0xf0, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
 
-    idt_attach_handler(8, isr_seg, isr_attr, &__isr_8);
-    idt_attach_handler(10, isr_seg, isr_attr, &__isr_10);
-    idt_attach_handler(11, isr_seg, isr_attr, &__isr_11);
-    idt_attach_handler(12, isr_seg, isr_attr, &__isr_12);
-    idt_attach_handler(13, isr_seg, isr_attr, &__isr_13);
-    idt_attach_handler(14, isr_seg, isr_attr, &__isr_14);
-    idt_attach_handler(17, isr_seg, isr_attr, &__isr_17);
+    idt_attach_handler(0x08, isr_seg, isr_attr, &__isr_0x08);
+    idt_attach_handler(0x0a, isr_seg, isr_attr, &__isr_0x0a);
+    idt_attach_handler(0x0b, isr_seg, isr_attr, &__isr_0x0b);
+    idt_attach_handler(0x0c, isr_seg, isr_attr, &__isr_0x0c);
+    idt_attach_handler(0x0d, isr_seg, isr_attr, &__isr_0x0d);
+    idt_attach_handler(0x0e, isr_seg, isr_attr, &__isr_0x0e);
+    idt_attach_handler(0x11, isr_seg, isr_attr, &__isr_0x11);
 
     memset(&tss, 0, sizeof(tss_t));
     tss.rsp0 = (uint64_t)allocate_stack();
@@ -123,7 +123,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             break;
         
         default:
-            printk("Unhandled interrupt <%d>\n", ctx->vector);
+            printk("Unhandled interrupt <%#x>\n", ctx->vector);
             for (;;) __asm__("hlt");
     }
 

@@ -73,28 +73,28 @@ __isr_%1:
 ; so that as far as the isr_general procedure is concerned all vectors work in
 ; the same way.
 
-isr_noerror 0
-isr_noerror 1
-isr_noerror 2
-isr_noerror 3
-isr_noerror 4
-isr_noerror 5
-isr_noerror 6
-isr_noerror 7
-isr_noerror 16
-isr_noerror 18
-isr_noerror 19
+isr_noerror 0x00
+isr_noerror 0x01
+isr_noerror 0x02
+isr_noerror 0x03
+isr_noerror 0x04
+isr_noerror 0x05
+isr_noerror 0x06
+isr_noerror 0x07
+isr_noerror 0x10
+isr_noerror 0x12
+isr_noerror 0x13
 
-isr_errorcode 8
-isr_errorcode 10
-isr_errorcode 11
-isr_errorcode 12
-isr_errorcode 13
-isr_errorcode 14
-isr_errorcode 17
+isr_errorcode 0x08
+isr_errorcode 0x0a
+isr_errorcode 0x0b
+isr_errorcode 0x0c
+isr_errorcode 0x0d
+isr_errorcode 0x0e
+isr_errorcode 0x11
 
 ; PIC mapping starts at 32
-isr_noerror 33 ; keyboard
+isr_noerror 0x21 ; keyboard
 
 ; Syscall
-isr_noerror 240
+isr_noerror 0xf0
