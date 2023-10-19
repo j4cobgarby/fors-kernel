@@ -25,8 +25,6 @@ volatile struct limine_kernel_address_request kernel_address_request = {
 
 buddy_allocator kheap_alloc; // Defined in kheap.h
 
-extern const void *_FORS_KERNEL_END; // Defined in linker.ld as the end of the virtual memory the kernel's loaded at
-
 void arch_init_memory() {
     x64_init_physical_memory();
     x64_init_virtual_memory();
@@ -36,14 +34,15 @@ void arch_init_memory() {
     idt_init();
 
     // Find the next memory after the end of kernel memory that is a multiple of KHEAP_MAXSIZE.
-    uint64_t kheap_start = (uint64_t)&_FORS_KERNEL_END & (0xffffffffffffffff << __builtin_ctz(KHEAP_MAXSIZE));
-    kheap_start += KHEAP_MAXSIZE;
+    uint64_t kheap_start = (uint64_t)&_FORS_HEAP_START;
     
     printk("Kheap starts at %p (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
 
     if (vmap(-1, pfalloc_one(), (void*)kheap_start, ARCH_PAGE_SIZE, VMAP_4K | VMAP_WRIT) < 0) {
         printk("Failed to map in kernel heap.\n");
     }
+
+    printk("Mapping in kernel heap.\n");
 
     buddy_init(ARCH_PAGE_SIZE, (void*)kheap_start, 5, &kheap_alloc);
 }

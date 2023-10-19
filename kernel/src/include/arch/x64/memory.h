@@ -12,6 +12,30 @@ extern volatile struct limine_memmap_request memmap_req;
 extern volatile struct limine_hhdm_request hhdm_request;
 extern volatile struct limine_kernel_address_request kernel_address_request;
 
+extern const void *_FORS_KERNEL_START;
+extern const void *_FORS_KERNEL_END; // Defined in linker.ld as the end of the virtual memory the kernel's loaded at
+
+extern const void *_FORS_KERNEL_CODE_START;
+extern const void *_FORS_KERNEL_CODE_END;
+
+extern const void *_FORS_KERNEL_RO_START;
+extern const void *_FORS_KERNEL_RO_END;
+
+extern const void *_FORS_KERNEL_RW_START;
+extern const void *_FORS_KERNEL_RW_END;
+
+extern const void *_FORS_KERNEL_TEMP_MAP_PAGE;
+extern const void *_FORS_HEAP_START;
+
+#define FORS_CODE_OFFSET ((uint64_t)&_FORS_KERNEL_CODE_START - (uint64_t)&_FORS_KERNEL_START)
+#define FORS_CODE_END_OFFSET ((uint64_t)&_FORS_KERNEL_CODE_END - (uint64_t)&_FORS_KERNEL_START)
+
+#define FORS_RO_OFFSET ((uint64_t)&_FORS_KERNEL_RO_START - (uint64_t)&_FORS_KERNEL_START)
+#define FORS_RO_END_OFFSET ((uint64_t)&_FORS_KERNEL_RO_END - (uint64_t)&_FORS_KERNEL_START)
+
+#define FORS_RW_OFFSET ((uint64_t)&_FORS_KERNEL_RW_START - (uint64_t)&_FORS_KERNEL_START)
+#define FORS_RW_END_OFFSET ((uint64_t)&_FORS_KERNEL_RW_END - (uint64_t)&_FORS_KERNEL_START)
+
 struct frame_marker {
     struct frame_marker *next;
     struct frame_marker *prev;
@@ -76,6 +100,8 @@ typedef uint64_t pml4_entry_t; // References a page directory pointer table
 typedef uint64_t pml3_entry_t; // References a page directory
 typedef uint64_t pml2_entry_t; // References a page table
 typedef uint64_t pml1_entry_t; // References a physical page
+
+extern pml4_entry_t *kernel_pml4_table;
 
 #define EXTRACT_4K_PAGE_OFFSET(vaddr) (vaddr & 0xfff)
 #define EXTRACT_2M_PAGE_OFFSET(vaddr) (vaddr & 0x1fffff)
