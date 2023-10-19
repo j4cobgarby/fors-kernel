@@ -95,13 +95,25 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
 void *interrupt_dispatch(register_ctx_x64 *ctx) {
     static int gone_to_user = 0;
 
+    printk("[INT %#x], %p\n", ctx->vector, ctx->cr3);
+
     int sc;    
     switch (ctx->vector) {
         case INT_PF:
             printk("#PF(%d) :( Halting.\n", ctx->error_code);
+            REGDUMP(ctx);
+
+/*
+1) Check if the page trying to be accessed is currently mapped within the kernel PML4.
+2) If so, make the same mapping in the current PML4, because it must be an interrupt
+    which happened during usermode, that is trying to run kernel interrupt handling
+    code, or trying to access the kernel heap, or something like that.
+*/
+
             for (;;) __asm__("hlt");
         case INT_GP:
             printk("#GP(%d) :( Halting.\n", ctx->error_code);
+            REGDUMP(ctx);
             for (;;) __asm__("hlt");
         case INT_DE:
             printk("Division by zero.\n");
@@ -113,15 +125,22 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
 
             if (!(sc & 0x80)) {
                 printk("Keystroke (%#x)\n", sc);
-                if (gone_to_user) return ctx;
-                else {
+                if (!gone_to_user) {
                     gone_to_user = 1;
-                    return &threads[0].ctx;
+                    ctx = &threads[0].ctx;
+                    printk("Set new ctx CR3 to %p\n", ctx->cr3);
                 }
             }
 
             break;
-        
+
+        case 0xf0:
+            if (ctx->rax == 0x1337l) {
+                printk("1337!\n");
+            } else {
+                printk("Syscall invoked with rax=%#x\n", ctx->rax);
+            }
+            break;
         default:
             printk("Unhandled interrupt <%#x>\n", ctx->vector);
             for (;;) __asm__("hlt");

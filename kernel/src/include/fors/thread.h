@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #ifdef __ARCH_x64__
+#include "arch/x64/memory.h"
 #include "arch/x64/cpu.h"
 #endif
 

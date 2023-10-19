@@ -19,7 +19,7 @@ volatile struct limine_framebuffer_request framebuf_req = {
 void funky_func(void*) {
     __asm__ ("xchg %bx, %bx");
 
-    __asm__ ("int $0xf0");
+    __asm__ ("int $0xf0" : : "a"(0x1337));
 
     for (;;);
 
@@ -49,19 +49,28 @@ void _start(void) {
 
     void *user_start = (void*)0x200000000;
 
-    if (vmap(-1, pfalloc_one(), (void*)0x200000000, 4096, 
+    void *user_code_phys = pfalloc_one();
+    void *user_stack = pfalloc_one();
+
+    void *tmp = tmpmap(user_code_phys);
+    if (tmp)
+        memcpy(tmp, &funky_func, 4096);
+
+    int tid = mkthread("Funky Function", 
+        user_start, NULL, 
+        user_start + 4096*2, 1);
+
+    printk("Mapping in user thread...");
+    if (vmap(0, user_code_phys, (void*)0x200000000, 4096, 
     VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT) < 0) {
         printk("Couldn't map userspace page\n"); for (;;);
     }
 
-    if (vmap(-1, pfalloc_one(), (void*)0x200000000 + 4096, 4096,
+    if (vmap(0, user_stack, (void*)0x200000000 + 4096, 4096,
     VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT) < 0) {
         printk("Couldn't map user stack.\n"); for (;;);
     }
 
-    memcpy(user_start, &funky_func, 4096);
-
-    int tid = mkthread("Funky Function", user_start, NULL, user_start + 4096*2, 1);
     printk("Created thread with TID %d\n", tid);
 
     for (;;) {

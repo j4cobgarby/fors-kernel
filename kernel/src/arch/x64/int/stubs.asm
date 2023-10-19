@@ -17,6 +17,9 @@ isr_general:
     push    r14
     push    r15
 
+    mov     rax, cr3
+    push    rax         ; push cr3
+
     mov     rdi, rsp    ; RDI is the first argument to the C function interrupt_dispatch
                         ; which expects a `register_ctx_x64 *` type. That structure is
                         ; defined so that it matches the stack at this point in execution,
@@ -24,6 +27,9 @@ isr_general:
     call    interrupt_dispatch
     mov     rsp, rax    ; Set registers to whatever interrupt_dispatch returns (again as
                         ; a `register_ctx_x64 *` type.
+
+    pop     rax
+    mov     cr3, rax
 
     pop     r15
     pop     r14
