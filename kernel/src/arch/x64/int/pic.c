@@ -40,9 +40,9 @@ void pic_map(uint8_t offset_master, uint8_t offset_slave) {
     outb(PIC_MASTER_DAT, 0xfb);
     outb(PIC_SLAVE_DAT, 0xff);
 
-    printk("Enabling interrupts...");
+    printk("Enabling interrupts.\n");
+    
     __asm__("sti");
-    printk("Done.\n");
 }
 
 void pic_block_irq(uint8_t irq) {

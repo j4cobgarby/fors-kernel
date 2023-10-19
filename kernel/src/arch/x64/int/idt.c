@@ -83,9 +83,7 @@ void idt_init() {
 void idt_load(struct idt_entry* table, int n_entries) {
     struct idt_descriptor idt_desc = INIT_IDT_DESCRIPTOR(table, n_entries);
 
-    __asm__ ("lidt %0"
-        : /* No outputs */
-        : "m" (idt_desc)); /* Pointer to the descriptor as %0 */
+    __asm__ ("lidt %0" : : "m" (idt_desc));
 }
 
 void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t attr, void *handler) {

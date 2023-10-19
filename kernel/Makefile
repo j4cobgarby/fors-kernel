@@ -28,7 +28,7 @@ CFLAGS = -Wall -Wextra  	\
     -Wno-unused-parameter	\
     -Wno-unused-function 	\
     -D__ARCH_$(ARCH)__   	\
-    -g                      \
+    -ggdb                   \
 
 LDFLAGS = \
 	-nostdlib -static		\
