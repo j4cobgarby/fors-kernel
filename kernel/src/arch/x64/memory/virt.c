@@ -2,6 +2,7 @@
 #include "fors/kerrno.h"
 #include "fors/memory.h"
 #include "fors/printk.h"
+#include "fors/thread.h"
 #include "limine.h"
 
 #include <stddef.h>
@@ -199,6 +200,14 @@ set_addr:
     return 0;
 }
 
+void *tmpmap(void *pa) {
+    if (map_page_4k(kernel_pml4_table, (uintptr_t)pa, (uintptr_t)&_FORS_KERNEL_TEMP_MAP_PAGE, PSE_PRESENT | PSE_WRITABLE) < 0) {
+        return NULL;
+    }
+
+    return (void*)&_FORS_KERNEL_TEMP_MAP_PAGE;
+}
+
 int vmap(int pid, void *pa, void *va, int size, int flags) {
     pml4_entry_t *root_table;
 
@@ -210,7 +219,9 @@ int vmap(int pid, void *pa, void *va, int size, int flags) {
     if (pid == -1) {
         root_table = kernel_pml4_table;
     } else {
-        return EIMPL;
+        thread th = threads[pid];
+        if (!th.present) return EINVARG;
+        root_table = (pml4_entry_t*)th.ctx.cr3;
     }
 
     if (flags & VMAP_4K) {
