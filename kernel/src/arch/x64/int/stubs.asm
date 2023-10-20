@@ -99,7 +99,8 @@ isr_errorcode 0x0d
 isr_errorcode 0x0e
 isr_errorcode 0x11
 
-; PIC mapping starts at 32
+; PIC mapping starts at 0x20
+;isr_noerror 0x20
 isr_noerror 0x21 ; keyboard
 
 ; Syscall

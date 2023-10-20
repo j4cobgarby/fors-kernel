@@ -58,7 +58,8 @@ void user_code(void*) {
         user_start, NULL, 
         user_start + 4096*2, 1);
 
-    printk("Mapping in user thread...");
+
+    printk("Mapping in user thread.\n");
     if (vmap(0, user_code_phys, (void*)0x200000000, 4096, 
     VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT) < 0) {
         printk("Couldn't map userspace page\n"); for (;;);
@@ -68,16 +69,33 @@ void user_code(void*) {
     VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT) < 0) {
         printk("Couldn't map user stack.\n"); for (;;);
     }
+    
+    //pic_unblock_irq(0);
 
-    printk("Created thread with TID %d\n", tid);
+    // uint32_t col = 0xff0000;
+    // uint32_t col2 = 0x00ff00;
 
     for (;;) {
         __asm__("hlt");
-        printk("Back to main thread!\n");
-        for (int i = 0; i < 256; i++) {
-            for (int j = 0; j < 256; j++) {
-                fb_arr[i * fb->pitch/4 + j] = (i % 256 << 8) + (j % 256 << 16);
-            }
-        }
+
+        // for (int i = 0; i < 200; i++) {
+        //     for (int j = 0; j < 200; j++) {
+        //         if ((i < 100 && j < 100) || (i >= 100 && j >= 100)) {
+        //             fb_arr[i * fb->pitch/4 + j] = col;
+        //         } else {
+        //             fb_arr[i * fb->pitch/4 + j] = col2;
+        //         }
+        //     }
+        // }
+        // col >>= 8;
+        // if (col == 0x0) col = 0xff0000;
+        // col2 >>= 8;
+        // if (col2 == 0x0) col2 = 0xff0000;
+
+        // // for (int i = 0; i < 100; i++) {
+        // //     for (int j = 0; j < 100; j++) {
+        // //         fb_arr[i * fb->pitch/4 + j] = (i % 256 << (0+sh)) + (j % 256 << (8+sh));
+        // //     }
+        // // }
     }
 }

@@ -9,3 +9,7 @@ long find_free_tid() {
     }
     return -1;
 }
+
+long schedule() {
+    return 0;
+}

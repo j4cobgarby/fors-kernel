@@ -40,7 +40,7 @@ pml4_entry_t *new_blank_user_pml4() {
     return new_pml4;
 }
 
-int mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user) {
+long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user) {
     thread *th;
     long tid = find_free_tid();
 
@@ -79,6 +79,7 @@ int mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool use
 
         th->ctx.rbp = 0;
 
+        printk("Created thread with TID=%d\n", tid);
         return tid;
     }
 }
