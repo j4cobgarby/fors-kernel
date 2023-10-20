@@ -1,4 +1,5 @@
 #include "fors/thread.h"
+#include "arch/x64/pic.h"
 #include "fors/memory.h"
 
 #include "arch/x64/cpu.h"
@@ -40,7 +41,7 @@ pml4_entry_t *new_blank_user_pml4() {
     return new_pml4;
 }
 
-int mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user) {
+long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user) {
     thread *th;
     long tid = find_free_tid();
 
@@ -81,4 +82,8 @@ int mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool use
 
         return tid;
     }
+}
+
+void arch_start_running_threads() {
+    pic_unblock_irq(0); // Start timer.
 }

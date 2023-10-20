@@ -36,6 +36,10 @@ extern thread threads[MAX_THREADS];
 // Finds a free TID, -1 if none available.
 long find_free_tid();
 
-int mkthread(char *name, void(*entry)(void*), void *arg, void *stack, bool user);
+long mkthread(char *name, void(*entry)(void*), void *arg, void *stack, bool user);
+
+long schedule();
+
+void arch_start_running_threads();
 
 #endif /* __INCLUDE_FORS_THREAD_STRUCT_H__ */

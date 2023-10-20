@@ -29,6 +29,7 @@ extern void *__isr_0x10;
 extern void *__isr_0x12;
 extern void *__isr_0x13;
 
+extern void *__isr_0x20;
 extern void *__isr_0x21; // Keyboard
 
 extern void *__isr_0xf0; // 0xf0 syscall
@@ -64,6 +65,7 @@ void idt_init() {
     idt_attach_handler(0x12, isr_seg, isr_attr, &__isr_0x12);
     idt_attach_handler(0x13, isr_seg, isr_attr, &__isr_0x13);
 
+    idt_attach_handler(0x20, isr_seg, isr_attr, &__isr_0x20); // Timer
     idt_attach_handler(0x21, isr_seg, isr_attr, &__isr_0x21); // Keyboard
 
     idt_attach_handler(0xf0, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
@@ -93,8 +95,6 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
 void *interrupt_dispatch(register_ctx_x64 *ctx) {
     static int gone_to_user = 0;
 
-    printk("[INT %#x], %p\n", ctx->vector, ctx->cr3);
-
     int sc;    
     switch (ctx->vector) {
         case INT_PF:
@@ -117,17 +117,22 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             printk("Division by zero.\n");
             for (;;) __asm__("hlt");
 
+        case PIC_FIRST_VECTOR:
+            pic_eoi(0);
+            printk("Tick.\n");
+            if (!gone_to_user) {
+                gone_to_user = 1;
+                ctx = &threads[0].ctx;
+                printk("Set new ctx CR3 to %p\n", ctx->cr3);
+            }
+            break;
         case PIC_FIRST_VECTOR + 1:
             sc = inb(0x60);
             pic_eoi(1);
 
             if (!(sc & 0x80)) {
                 printk("Keystroke (%#x)\n", sc);
-                if (!gone_to_user) {
-                    gone_to_user = 1;
-                    ctx = &threads[0].ctx;
-                    printk("Set new ctx CR3 to %p\n", ctx->cr3);
-                }
+                
             }
 
             break;
