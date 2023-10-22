@@ -1,6 +1,8 @@
 extern interrupt_dispatch
 
 isr_general:
+    cli
+
     push    rax
     push    rbx
     push    rcx
@@ -52,7 +54,7 @@ isr_general:
                         ; just takes those two things away so that iret sees what the CPU
                         ; originally pushed.
 
-    xchg bx, bx
+    sti
 
     iretq
 

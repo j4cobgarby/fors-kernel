@@ -118,31 +118,32 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             for (;;) __asm__("hlt");
 
         case PIC_FIRST_VECTOR:
-            pic_eoi(0);
-            printk("Tick.\n");
-            if (!gone_to_user) {
-                gone_to_user = 1;
-                ctx = &threads[0].ctx;
-                printk("Set new ctx CR3 to %p\n", ctx->cr3);
+            if (current_thread >= 0) {
+                // Save context if a thread is running
+                threads[current_thread].ctx = *ctx;
             }
+
+            current_thread = schedule();
+            ctx = &threads[current_thread].ctx;
+
+            printk("Returning to %d\n", current_thread);
+
+            pic_eoi(0);
             break;
         case PIC_FIRST_VECTOR + 1:
             sc = inb(0x60);
-            pic_eoi(1);
 
             if (!(sc & 0x80)) {
                 printk("Keystroke (%#x)\n", sc);
                 
             }
 
+            pic_eoi(1);
+
             break;
 
         case 0xf0:
-            if (ctx->rax == 0x1337l) {
-                printk("1337!\n");
-            } else {
-                printk("Syscall invoked with rax=%#x\n", ctx->rax);
-            }
+            printk("Syscall (%#x)\n", ctx->rax);
             break;
         default:
             printk("Unhandled interrupt <%#x>\n", ctx->vector);

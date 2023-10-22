@@ -32,11 +32,15 @@ typedef struct thread {
 } thread;
 
 extern thread threads[MAX_THREADS];
+extern long current_thread;
 
 // Finds a free TID, -1 if none available.
 long find_free_tid();
 
 long mkthread(char *name, void(*entry)(void*), void *arg, void *stack, bool user);
+
+int enqueue_thread(long tid);
+long dequeue_thread();
 
 long schedule();
 

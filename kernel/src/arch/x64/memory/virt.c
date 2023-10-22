@@ -123,6 +123,9 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsign
     // specified in 'phys'.
     // The caller should allocate a frame for the page.
 
+    // printk("[map] pml1 table at %p\n", pml1_table);
+    // printk("[map] pml1 entry at %p\n", pml1_entry);
+
     *pml1_entry = PSE_PTR(phys) | flags;
 
     flush_tlb(virt);
