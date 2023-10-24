@@ -17,9 +17,10 @@ volatile struct limine_framebuffer_request framebuf_req = {
 };
 
 void task1(void *) {
-    __asm__("int $0xf0" : : "a"(0x1337));
-
+    uint64_t a = 0;
     for (;;) {
+        __asm__("int $0xf0" : : "a"(a));
+        a++;
     }
 }
 

@@ -1,8 +1,6 @@
 extern interrupt_dispatch
 
 isr_general:
-    cli
-
     push    rax
     push    rbx
     push    rcx
@@ -54,13 +52,12 @@ isr_general:
                         ; just takes those two things away so that iret sees what the CPU
                         ; originally pushed.
 
-    sti
-
     iretq
 
 %macro  isr_errorcode 1
 extern __isr_%1
 __isr_%1:
+    cli
     ; (When the particular interrupt type has an error code, this is pushed by the CPU before entering here.)
     push qword %1       ; Just push the vector number
     jmp isr_general     ; isr_general does most of the work getting to the C code
@@ -69,6 +66,7 @@ __isr_%1:
 %macro isr_noerror 1
 extern __isr_%1
 __isr_%1:
+    cli
     push qword 0        ; Fake error code, to account for the CPU not pushing one
     push qword %1
     jmp isr_general

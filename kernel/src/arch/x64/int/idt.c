@@ -118,7 +118,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             for (;;) __asm__("hlt");
 
         case PIC_FIRST_VECTOR:
-            if (current_thread >= 0) {
+            if (current_thread >= 0 && ctx->rip < 0xffff800000000000) {
                 // Save context if a thread is running
                 threads[current_thread].ctx = *ctx;
             }
@@ -126,7 +126,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             current_thread = schedule();
             ctx = &threads[current_thread].ctx;
 
-            printk("Returning to %d\n", current_thread);
+            printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
 
             pic_eoi(0);
             break;
@@ -143,7 +143,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             break;
 
         case 0xf0:
-            printk("Syscall (%#x)\n", ctx->rax);
+            printk("Syscall (%d)\n", ctx->rax, ctx->rip);
             break;
         default:
             printk("Unhandled interrupt <%#x>\n", ctx->vector);
