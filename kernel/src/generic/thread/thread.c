@@ -3,9 +3,7 @@
 #include <stdbool.h>
 
 thread threads[MAX_THREADS];
-
 long sched_queue[MAX_THREADS];
-
 long current_thread = -1;
 
 static size_t sq_head = 0;

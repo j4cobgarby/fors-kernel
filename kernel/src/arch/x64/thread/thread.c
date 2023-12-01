@@ -1,4 +1,5 @@
 #include "fors/thread.h"
+#include "fors/timer.h"
 #include "arch/x64/pic.h"
 #include "fors/memory.h"
 
@@ -84,6 +85,12 @@ long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool us
     }
 }
 
+void schedule_set_current_thread() {
+    current_thread = schedule();
+}
+
 void arch_start_running_threads() {
+    // Invoke the scheduler every 10 ticks
+    add_timer_handle(&schedule_set_current_thread, 10);
     pic_unblock_irq(0); // Start timer.
 }

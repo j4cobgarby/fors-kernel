@@ -3,10 +3,12 @@
 #include "arch/x64/pic.h"
 #include "arch/x64/io.h"
 #include "arch/x64/cpu.h"
+#include "arch/x64/pit.h"
 
 #include "fors/memory.h"
 #include "fors/printk.h"
 #include "fors/thread.h"
+#include "fors/timer.h"
 
 #include "forslib/string.h"
 
@@ -93,9 +95,8 @@ void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t
 }
 
 void *interrupt_dispatch(register_ctx_x64 *ctx) {
-    static int gone_to_user = 0;
-
     int sc;    
+    long thread_save;
     switch (ctx->vector) {
         case INT_PF:
             printk("#PF(%d) :( Halting.\n", ctx->error_code);
@@ -117,16 +118,25 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             printk("Division by zero.\n");
             for (;;) __asm__("hlt");
 
-        case PIC_FIRST_VECTOR:
-            if (current_thread >= 0 && ctx->rip < 0xffff800000000000) {
-                // Save context if a thread is running
-                threads[current_thread].ctx = *ctx;
+        case PIC_FIRST_VECTOR: // PIT timer
+            thread_save = current_thread;
+
+            // Tick the timer, which may call some timer handle callbacks.
+            // These callbacks may do scheduling work, so after timer_tick
+            // the current_thread may have changed.
+            timer_tick();
+
+            if (thread_save != current_thread) { // current_thread has been changed!
+                if (thread_save >= 0 && ctx->rip < 0xffff800000000000) {
+                    // Save context if a thread is running
+                    // If the check for rip being in user memory is not made, the situation can happen where
+                    // a timer interrupt occurs at the moment when a syscall is sent by a user thread,
+                    // which messes up the thread's execution.
+                    threads[thread_save].ctx = *ctx;
+                }
+                ctx = &threads[current_thread].ctx;
+                printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
             }
-
-            current_thread = schedule();
-            ctx = &threads[current_thread].ctx;
-
-            printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
 
             pic_eoi(0);
             break;
@@ -143,7 +153,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx) {
             break;
 
         case 0xf0:
-            printk("Syscall (%d)\n", ctx->rax, ctx->rip);
+            printk("Syscall (%ld)\n", ctx->rax, ctx->rip);
             break;
         default:
             printk("Unhandled interrupt <%#x>\n", ctx->vector);
