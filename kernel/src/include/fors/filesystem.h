@@ -4,67 +4,67 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// Flags for mountpoint.flags
-#define MF_RDONLY (1 << 0) // Is this mountpoint read only?
-#define MF_EXEC   (1 << 1) // Are programs on this mountpoint executable?
+typedef enum nodetype_e { NT_FILE, NT_DIR, } nodetype;
+typedef enum fileaccess_e { FA_READONLY, FA_WRITEONLY, FA_READWRITE, } fileaccess;
+typedef enum seek_anchor_e { SA_START, SA_END, SA_OFFSET, } seek_anchor;
 
-typedef struct mountpoint {
-    char *tag; // Name used to refer to this mountpoint
-    int device; // Which device (if any) does this mountpoint store its data on?
-    struct filesystem_type *type;
-    unsigned flags;
+#define TAG_SIZE 8
+
+typedef struct mountpoint_t {
+    char tag[TAG_SIZE];
+    struct fsnode_t *root;
+    struct filesystem_t *fs;
+    int device; // -1 if no device used, otherwise the device ID
+    bool dirty; // Was any part of this FS modified since last save to "disk"?
+
+    struct mountpoint_t *next, *prev;
 } mountpoint;
 
-typedef struct filesystem_type {
-    char *name;
+typedef struct fsnode_t {
+    size_t vfs_id; // Global ID, unique among all nodes
+    size_t node_id; // FS-specific ID, use this however, used when reading and saving nodes from disk
+    mountpoint *mount;
+    nodetype type;
+    bool dirty; // Was this node modified since last save to "disk"?
+    unsigned link_count; // How many directory entries link to this node?
 
-    // Set up a mountpoint type, m, taking into account parameters in opt. The mountpoint
-    // gets tagged with the string in tag.
-    // m.device and m.flags should already be set, so that this function knows
-    // which device to use and how to mountpoint it.
-    // The string tag is copied, so it doesn't need to stay in memory.
-    int (*setup_mountpoint)(mountpoint *m, char *opt, const char *tag);
+    struct fsnode_t *next, *prev;
+} fsnode;
 
-    
-} filesystem_type;
+typedef struct file_t {
+    size_t fd; // Global fd
+    fsnode *node;
+    int pid;
+    fileaccess access;
 
-typedef struct inode {
-    // FS specific ID. In some cases, this will be the inode number within the
-    // FS, or it could be anything really. 
-    unsigned long id; 
-    
-    unsigned long blksize;
-    unsigned long blks;
+    struct file_t *next, *prev;
+} file;
 
-    bool dirty; // Has this inode been modified since last saved?
+typedef struct list_dir_entry_t {
+    const char *name;
+    fsnode *node;
+} list_dir_entry;
 
-    mountpoint *mount; // Which mountpoint is this inode within?
-} inode;
+typedef struct filesystem_t {
+    int (*mount)(const char *tag, int device, mountpoint *mount_res); // Create mountpoint
+    int (*save_all)(mountpoint *mount); // Make sure all files and everything about the FS is "saved"
 
-// Methods which act on a mountpoint as a whole.
-typedef struct mountpoint_methods {
-    // Sets up a given inode.
-    // Similar to filesystem_type.setup_mountpoint. The inode should already
-    int (*setup_inode)(struct inode *);
-} mountpoint_methods;
+    int (*read_node)(mountpoint *mount, size_t node_id, fsnode *node_res); // Read existing node from disk
+    int (*save_node)(fsnode *node); // "Save" node.
+    int (*new_node)(fsnode *parent, const char *name, nodetype type); // Create a brand new node.
 
-typedef struct inode_methods {
-    
-} inode_methods;
+    int (*link_node)(fsnode *parent, const char *name, fsnode *to_link);
+    int (*unlink_node)(fsnode *parent, const char *name);
 
-typedef struct file_methods {
-    
-} file_methods;
+    int (*lookup)(fsnode *dir, const char *name, size_t name_len, fsnode **node_res); // Sets node_res if name found in dir, otherwise NULL
+    int (*num_children)(fsnode *dir); // How many child nodes are in the directory?
+    int (*list_dir)(fsnode *dir, list_dir_entry *entries); // Must allocate space for `num_children()` entries before calling
 
-/// Filesystem Design
-//
-// A mountpointed filesystem is associated with a 'tag' which used used when
-// referring to files in it. For example, if the user mountpoints a filesystem
-// with the tag 'root', then files on it could be accessed as so:
-//  :root/home/jacob/my_document.txt
-// And if the current working directory is already in :root, then this same
-// path could equally be referred to as:
-//  /home/jacob/my_document.txt
-//
+    int (*open)(fsnode *node, int pid, fileaccess access, file *file_res);
+    int (*close)(file *to_close, int pid);
+    int (*seek)(file *f, size_t offset, seek_anchor anchor);
+    int (*read)(file *f, size_t bytes, char *buff);
+    int (*write)(file *f, size_t bytes, const char *buff);
+} filesystem;
 
-#endif /* __INCLUDE_FOSR_FILESYSTEM_H__ */
+#endif /* __INCLUDE_FORS_FILESYSTEM_H__ */
