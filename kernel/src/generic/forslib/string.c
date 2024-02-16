@@ -77,6 +77,12 @@ char *strchr(const char *s, int c) {
     return memchr(s, c, strlen(s));
 }
 
+char *strchrnul(const char *s, int c) {
+    char *ret = memchr(s, c, strlen(s));
+    if (ret == NULL) ret = (char*)s + strlen(s);
+    return ret;
+}
+
 char *strrchr(const char *s, int c) {
     return memrchr(s, c, strlen(s));
 }

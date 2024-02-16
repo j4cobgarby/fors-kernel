@@ -22,6 +22,7 @@ char   *strchr(const char *, int);
 char   *strrchr(const char *, int);
 char   *strnchr(const char *, int, size_t);
 char   *strnrchr(const char *, int, size_t);
+char   *strchrnul(const char *, int);
 
 char   *strpbrk(const char *, const char *);
 
