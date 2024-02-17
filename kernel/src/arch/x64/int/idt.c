@@ -14,7 +14,6 @@
 
 #include <stdint.h>
 
-
 struct idt_entry idt_table[IDT_N_ENTRIES];
 tss_t tss;
 
@@ -45,7 +44,8 @@ extern void *__isr_0x0d;
 extern void *__isr_0x0e;
 extern void *__isr_0x11;
 
-void idt_init() {
+void idt_init()
+{
     idt_load(idt_table, IDT_N_ENTRIES);
 
     union segment_selector isr_seg;
@@ -70,7 +70,8 @@ void idt_init() {
     idt_attach_handler(0x20, isr_seg, isr_attr, &__isr_0x20); // Timer
     idt_attach_handler(0x21, isr_seg, isr_attr, &__isr_0x21); // Keyboard
 
-    idt_attach_handler(0xf0, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
+    idt_attach_handler(
+        0xf0, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
 
     idt_attach_handler(0x08, isr_seg, isr_attr, &__isr_0x08);
     idt_attach_handler(0x0a, isr_seg, isr_attr, &__isr_0x0a);
@@ -84,80 +85,83 @@ void idt_init() {
     tss.rsp0 = (uint64_t)allocate_stack();
 }
 
-void idt_load(struct idt_entry* table, int n_entries) {
+void idt_load(struct idt_entry *table, int n_entries)
+{
     struct idt_descriptor idt_desc = INIT_IDT_DESCRIPTOR(table, n_entries);
 
-    __asm__ ("lidt %0" : : "m" (idt_desc));
+    __asm__("lidt %0" : : "m"(idt_desc));
 }
 
-void idt_attach_handler(int vector, union segment_selector seg, idt_attributes_t attr, void *handler) {
+void idt_attach_handler(
+    int vector, union segment_selector seg, idt_attributes_t attr, void *handler)
+{
     idt_table[vector] = INIT_IDT_ENTRY(seg, attr, (uint64_t)handler);
 }
 
-void *interrupt_dispatch(register_ctx_x64 *ctx) {
-    int sc;    
+void *interrupt_dispatch(register_ctx_x64 *ctx)
+{
+    int sc;
     long thread_save;
     switch (ctx->vector) {
-        case INT_PF:
-            printk("#PF(%d) :( Halting.\n", ctx->error_code);
-            REGDUMP(ctx);
+    case INT_PF:
+        printk("#PF(%d) :( Halting.\n", ctx->error_code);
+        REGDUMP(ctx);
 
-/*
-1) Check if the page trying to be accessed is currently mapped within the kernel PML4.
-2) If so, make the same mapping in the current PML4, because it must be an interrupt
-    which happened during usermode, that is trying to run kernel interrupt handling
-    code, or trying to access the kernel heap, or something like that.
-*/
+        /*
+        1) Check if the page trying to be accessed is currently mapped within the kernel
+        PML4. 2) If so, make the same mapping in the current PML4, because it must be an
+        interrupt which happened during usermode, that is trying to run kernel interrupt
+        handling code, or trying to access the kernel heap, or something like that.
+        */
 
-            for (;;) __asm__("hlt");
-        case INT_GP:
-            printk("#GP(%d) :( Halting.\n", ctx->error_code);
-            REGDUMP(ctx);
-            for (;;) __asm__("hlt");
-        case INT_DE:
-            printk("Division by zero.\n");
-            for (;;) __asm__("hlt");
+        for (;;) __asm__("hlt");
+    case INT_GP:
+        printk("#GP(%d) :( Halting.\n", ctx->error_code);
+        REGDUMP(ctx);
+        for (;;) __asm__("hlt");
+    case INT_DE:
+        printk("Division by zero.\n");
+        for (;;) __asm__("hlt");
 
-        case PIC_FIRST_VECTOR: // PIT timer
-            thread_save = current_thread;
+    case PIC_FIRST_VECTOR: // PIT timer
+        thread_save = current_thread;
 
-            // Tick the timer, which may call some timer handle callbacks.
-            // These callbacks may do scheduling work, so after timer_tick
-            // the current_thread may have changed.
-            timer_tick();
+        // Tick the timer, which may call some timer handle callbacks.
+        // These callbacks may do scheduling work, so after timer_tick
+        // the current_thread may have changed.
+        timer_tick();
 
-            if (thread_save != current_thread) { // current_thread has been changed!
-                if (thread_save >= 0 && ctx->rip < 0xffff800000000000) {
-                    // Save context if a thread is running
-                    // If the check for rip being in user memory is not made, the situation can happen where
-                    // a timer interrupt occurs at the moment when a syscall is sent by a user thread,
-                    // which messes up the thread's execution.
-                    threads[thread_save].ctx = *ctx;
-                }
-                ctx = &threads[current_thread].ctx;
-                printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
+        if (thread_save != current_thread) { // current_thread has been changed!
+            if (thread_save >= 0 && ctx->rip < 0xffff800000000000) {
+                // Save context if a thread is running
+                // If the check for rip being in user memory is not made, the situation
+                // can happen where a timer interrupt occurs at the moment when a syscall
+                // is sent by a user thread, which messes up the thread's execution.
+                threads[thread_save].ctx = *ctx;
             }
+            ctx = &threads[current_thread].ctx;
+            printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
+        }
 
-            pic_eoi(0);
-            break;
-        case PIC_FIRST_VECTOR + 1:
-            sc = inb(0x60);
+        pic_eoi(0);
+        break;
+    case PIC_FIRST_VECTOR + 1:
+        sc = inb(0x60);
 
-            if (!(sc & 0x80)) {
-                printk("Keystroke (%#x)\n", sc);
-                
-            }
+        if (!(sc & 0x80)) {
+            printk("Keystroke (%#x)\n", sc);
+        }
 
-            pic_eoi(1);
+        pic_eoi(1);
 
-            break;
+        break;
 
-        case 0xf0:
-            printk("Syscall (%ld)\n", ctx->rax, ctx->rip);
-            break;
-        default:
-            printk("Unhandled interrupt <%#x>\n", ctx->vector);
-            for (;;) __asm__("hlt");
+    case 0xf0:
+        printk("Syscall (%ld)\n", ctx->rax, ctx->rip);
+        break;
+    default:
+        printk("Unhandled interrupt <%#x>\n", ctx->vector);
+        for (;;) __asm__("hlt");
     }
 
     return ctx;

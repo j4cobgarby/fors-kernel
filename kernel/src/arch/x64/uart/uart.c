@@ -19,7 +19,8 @@ static struct uart_com_port com_ports[COM_PORT_COUNT] = {
 
 struct uart_com_port *uart_port = NULL;
 
-int x64_uart_init() {
+int x64_uart_init()
+{
     for (int i = 0; i < COM_PORT_COUNT; i++) {
         if (com_port_setup(&com_ports[i], 3) == 0) {
             if (!uart_port) uart_port = &(com_ports[i]);
@@ -34,7 +35,8 @@ int x64_uart_init() {
     return 0;
 }
 
-int com_port_setup(struct uart_com_port *port, uint16_t divisor) {
+int com_port_setup(struct uart_com_port *port, uint16_t divisor)
+{
     outb(port->io_port_base + COM_PORT_OFFSET_INT_ENABLE, 0x00);
 
     // The most significant bit of the line control register is the DLAB bit.
@@ -47,7 +49,8 @@ int com_port_setup(struct uart_com_port *port, uint16_t divisor) {
     outb(port->io_port_base + COM_PORT_OFFSET_BAUD_DIVISOR_HIGH, (divisor >> 8) & 0xff);
 
     // Now we use the LINE_CTRL register to set the parameters of the serial.
-    outb(port->io_port_base + COM_PORT_OFFSET_LINE_CTRL, SET_LINE_CTRL(8, STOP_BITS_1, PARITY_NONE));
+    outb(port->io_port_base + COM_PORT_OFFSET_LINE_CTRL,
+        SET_LINE_CTRL(8, STOP_BITS_1, PARITY_NONE));
     outb(port->io_port_base + COM_PORT_OFFSET_INT_ID, 0xc7);
     outb(port->io_port_base + COM_PORT_OFFSET_MODEM_CTRL, 0x0b);
 
@@ -70,38 +73,46 @@ int com_port_setup(struct uart_com_port *port, uint16_t divisor) {
     }
 }
 
-static int can_send(struct uart_com_port port) {
+static int can_send(struct uart_com_port port)
+{
     return inb(port.io_port_base + COM_PORT_OFFSET_LINE_STAT) & LINE_STAT_THRE;
 }
 
-static int can_read(struct uart_com_port port) {
+static int can_read(struct uart_com_port port)
+{
     return inb(port.io_port_base + COM_PORT_OFFSET_LINE_STAT) & LINE_STAT_DR;
 }
 
-void com_send(struct uart_com_port port, char c) {
+void com_send(struct uart_com_port port, char c)
+{
     if (port.status == COM_PORT_STATUS_READY) {
-        while (!can_send(port));
+        while (!can_send(port))
+            ;
 
         outb(port.io_port_base + COM_PORT_OFFSET_DATA, c);
     }
 }
 
-void com_sends(struct uart_com_port port, const char *s) {
+void com_sends(struct uart_com_port port, const char *s)
+{
     for (; *s; s++) {
         com_send(port, *s);
     }
 }
 
-char com_read(struct uart_com_port port) {
+char com_read(struct uart_com_port port)
+{
     if (port.status == COM_PORT_STATUS_READY) {
-        while (!can_read(port));
+        while (!can_read(port))
+            ;
 
         return inb(port.io_port_base + COM_PORT_OFFSET_DATA);
-    } 
+    }
     return 0;
 }
 
-void com_reads(struct uart_com_port port, char *buff, char delim) {
+void com_reads(struct uart_com_port port, char *buff, char delim)
+{
     char c;
 
     while ((c = com_read(port)) != delim) {
@@ -111,10 +122,12 @@ void com_reads(struct uart_com_port port, char *buff, char delim) {
 
 // Functions for printk
 
-void kputc(char c) {
+void kputc(char c)
+{
     com_send(*uart_port, c);
 }
 
-void kputs(const char *restrict str) {
+void kputs(const char *restrict str)
+{
     com_sends(*uart_port, str);
 }

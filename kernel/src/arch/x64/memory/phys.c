@@ -8,7 +8,8 @@
 static struct frame_marker *frame_list = NULL;
 static unsigned long int free_frames = 0;
 
-static void update_cons(struct frame_marker *from) {
+static void update_cons(struct frame_marker *from)
+{
     struct frame_marker *curr = from->prev;
 
     while (curr && curr->next == curr + ARCH_PAGE_SIZE) {
@@ -17,10 +18,10 @@ static void update_cons(struct frame_marker *from) {
 }
 
 // Insert a page frame into the frame list, ordered by ascending address.
-static void frame_insert(void *frame_ptr) {
-    struct frame_marker *prev = NULL,
-                        *to_ins = frame_ptr;
-    
+static void frame_insert(void *frame_ptr)
+{
+    struct frame_marker *prev = NULL, *to_ins = frame_ptr;
+
     if (!frame_list) {
         to_ins->prev = to_ins->next = NULL;
         frame_list = to_ins;
@@ -58,10 +59,11 @@ static void frame_insert(void *frame_ptr) {
         }
     }
 
-    //TODO: Assert that here is never reached
+    // TODO: Assert that here is never reached
 }
 
-void x64_init_physical_memory() {
+void x64_init_physical_memory()
+{
     static const char *const memtype_strs[] = {
         " * Usable           ",
         "   Reserved         ",
@@ -76,26 +78,29 @@ void x64_init_physical_memory() {
     struct limine_memmap_response *mm_resp = memmap_req.response;
 
     printk("Memory map received from Limine:\n");
-    for (int i = mm_resp->entry_count-1; i >= 0; i--) {
+    for (int i = mm_resp->entry_count - 1; i >= 0; i--) {
         struct limine_memmap_entry *ent = mm_resp->entries[i];
 
-        printk(" >> [%s]: From %p ==> %p (%dK)\n",
-            memtype_strs[ent->type], ent->base, ent->base + ent->length, ent->length / 1024);
+        printk(" >> [%s]: From %p ==> %p (%dK)\n", memtype_strs[ent->type], ent->base,
+            ent->base + ent->length, ent->length / 1024);
 
         if (ent->type == LIMINE_MEMMAP_USABLE) {
-            for (int byte = ent->length - ARCH_PAGE_SIZE; byte >= 0; byte -= ARCH_PAGE_SIZE) {
-                frame_insert((void*)ent->base + byte);
+            for (int byte = ent->length - ARCH_PAGE_SIZE; byte >= 0;
+                 byte -= ARCH_PAGE_SIZE) {
+                frame_insert((void *)ent->base + byte);
             }
         }
     }
 
-    printk("Page frame pool initialised with %d free %d-byte frames.\n", free_frames, ARCH_PAGE_SIZE);
+    printk("Page frame pool initialised with %d free %d-byte frames.\n", free_frames,
+        ARCH_PAGE_SIZE);
 }
 
-void *pfalloc_one() {
+void *pfalloc_one()
+{
     if (!frame_list) return NULL;
-    
-    void *ret = (void*)frame_list;
+
+    void *ret = (void *)frame_list;
 
     if (frame_list->next) frame_list->next->prev = NULL;
     frame_list = frame_list->next;
@@ -105,7 +110,8 @@ void *pfalloc_one() {
     return ret;
 }
 
-void *pfalloc_consecutive(unsigned int n) {
+void *pfalloc_consecutive(unsigned int n)
+{
     struct frame_marker *set_start = frame_list, *curr;
     unsigned int so_far;
 
@@ -123,9 +129,10 @@ void *pfalloc_consecutive(unsigned int n) {
 
     // Iterate until we find a suitable set or reach the end of the list
     while (curr) {
-        // If the current frame is immediately following the one before it, then increase the number of consecutive frames.
-        // If it's not, then reset the consecutive frames counter and the start frame of the current set.
-        if ((void*)curr == (void*)curr->prev + ARCH_PAGE_SIZE) {
+        // If the current frame is immediately following the one before it, then increase
+        // the number of consecutive frames. If it's not, then reset the consecutive
+        // frames counter and the start frame of the current set.
+        if ((void *)curr == (void *)curr->prev + ARCH_PAGE_SIZE) {
             so_far++;
 
             if (so_far == n) {
@@ -157,12 +164,14 @@ void *pfalloc_consecutive(unsigned int n) {
     }
 }
 
-void pffree_one(void *pf) {
+void pffree_one(void *pf)
+{
     frame_insert(pf);
 }
 
-void pffree_consecutive(void *pf_first, unsigned int n) {
+void pffree_consecutive(void *pf_first, unsigned int n)
+{
     for (unsigned int b = 0; b < n; b++) {
-        pffree_one((void*)pf_first + (b * ARCH_PAGE_SIZE));
+        pffree_one((void *)pf_first + (b * ARCH_PAGE_SIZE));
     }
 }

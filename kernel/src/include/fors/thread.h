@@ -9,10 +9,13 @@
 #endif
 
 #define THREAD_NAME_LENGTH 32
-#define MAX_THREADS 128
+#define MAX_THREADS        128
 
 typedef enum thread_status {
-    THR_RUNNING, THR_READY, THR_BLOCKED, THR_KILLED
+    THR_RUNNING,
+    THR_READY,
+    THR_BLOCKED,
+    THR_KILLED
 } thread_status;
 
 /* This struct should be the first element of the arch-specific thread_arch
@@ -21,7 +24,7 @@ typedef enum thread_status {
 typedef struct thread {
     bool present; // Present in thread array?
 
-    long tid; // Unique ID
+    long tid;                      // Unique ID
     char name[THREAD_NAME_LENGTH]; // Not necessarily unique name string
 
     thread_status status;
@@ -37,7 +40,7 @@ extern long current_thread;
 // Finds a free TID, -1 if none available.
 long find_free_tid();
 
-long mkthread(char *name, void(*entry)(void*), void *arg, void *stack, bool user);
+long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user);
 
 int enqueue_thread(long tid);
 long dequeue_thread();

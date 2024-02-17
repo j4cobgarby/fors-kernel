@@ -2,6 +2,4 @@
 
 struct limine_rsdp_request rsdp_req;
 
-void acpi_init() {
-    
-}
+void acpi_init() { }

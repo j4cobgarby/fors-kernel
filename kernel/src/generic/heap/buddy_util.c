@@ -4,7 +4,8 @@
 // Remove a block from whichever list it's in
 // Before:  ... A <-> bl <-> B ...
 // After:   ... A <--------> B ...
-void *remove_block(buddy_allocator *alloc, buddy_block *bl) {
+void *remove_block(buddy_allocator *alloc, buddy_block *bl)
+{
     buddy_block *left = bl->prev, *right = bl->next;
 
     if (left) left->next = right;
@@ -20,7 +21,8 @@ void *remove_block(buddy_allocator *alloc, buddy_block *bl) {
 // Insert a block at the head of its correct list
 // Before:  NULL <--------> A (head) ...
 // After:   NULL <-> bl (head) <-> A ...
-void insert_block(buddy_allocator *alloc, buddy_block *bl) {
+void insert_block(buddy_allocator *alloc, buddy_block *bl)
+{
     buddy_block *head = alloc->order_lists[bl->order - alloc->min_order];
 
     bl->prev = NULL;
@@ -28,12 +30,13 @@ void insert_block(buddy_allocator *alloc, buddy_block *bl) {
     bl->taken = 0; // Blocks in the list are free ones
 
     if (head) head->prev = bl;
-    
+
     alloc->order_lists[bl->order - alloc->min_order] = bl;
 }
 
-int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc) {
-    if ((size & (size-1)) != 0) {
+int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc)
+{
+    if ((size & (size - 1)) != 0) {
         return -1;
     }
 
@@ -60,7 +63,8 @@ int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc)
     return 0;
 }
 
-buddy_block *get_buddy(buddy_allocator *alloc, buddy_block *bl) {
+buddy_block *get_buddy(buddy_allocator *alloc, buddy_block *bl)
+{
     if (bl->order == alloc->max_order) return NULL;
 
     size_t mask = 1 << bl->order;
@@ -69,7 +73,8 @@ buddy_block *get_buddy(buddy_allocator *alloc, buddy_block *bl) {
     return buddy;
 }
 
-buddy_block *split(buddy_allocator *alloc, buddy_block *bl) {
+buddy_block *split(buddy_allocator *alloc, buddy_block *bl)
+{
     buddy_block *br;
 
     if (bl->order - 1 < alloc->min_order) {
@@ -89,12 +94,14 @@ buddy_block *split(buddy_allocator *alloc, buddy_block *bl) {
     return br;
 }
 
-buddy_block *merge(buddy_allocator *alloc, buddy_block *bl) {
+buddy_block *merge(buddy_allocator *alloc, buddy_block *bl)
+{
     buddy_block *left_buddy;
 
     if (bl->order == alloc->max_order) return NULL;
 
-    left_buddy = (buddy_block *)((size_t)bl & ~(1 << bl->order)); // Clear bit that separates the two buddies from each other
+    left_buddy = (buddy_block *)((size_t)bl
+        & ~(1 << bl->order)); // Clear bit that separates the two buddies from each other
 
     if (left_buddy->order != get_buddy(alloc, left_buddy)->order) return NULL;
 
@@ -108,10 +115,12 @@ buddy_block *merge(buddy_allocator *alloc, buddy_block *bl) {
     return left_buddy;
 }
 
-void *kalloc(size_t size) {
+void *kalloc(size_t size)
+{
     return balloc(size, &kheap_alloc);
 }
 
-void kfree(void *ptr) {
+void kfree(void *ptr)
+{
     bfree(ptr, &kheap_alloc);
 }

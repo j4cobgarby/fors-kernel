@@ -1,0 +1,16 @@
+﻿---
+BasedOnStyle: WebKit
+AlignConsecutiveMacros: 'true'
+AlignTrailingComments: 'true'
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: 'true'
+ColumnLimit: '90'
+ContinuationIndentWidth: '4'
+IndentCaseLabels: 'false'
+IndentWidth: '4'
+PointerAlignment: Right
+SortIncludes: 'false'
+SpaceAfterCStyleCast: 'false'
+AllowShortFunctionsOnASingleLine: Empty
+
+...

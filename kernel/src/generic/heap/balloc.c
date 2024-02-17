@@ -1,6 +1,7 @@
 #include "fors/kheap.h"
 
-void *balloc(size_t size, buddy_allocator *alloc) {
+void *balloc(size_t size, buddy_allocator *alloc)
+{
     if (size > alloc->size) {
         return NULL;
         // TODO: Could allocate more memory for the buddy allocator here.
@@ -11,11 +12,13 @@ void *balloc(size_t size, buddy_allocator *alloc) {
     }
 
     size += sizeof(buddy_block);
-    size = size == 1 ? 1 : 1 << (64 - __builtin_clz(size-1)); // Round up to next power of 2
+    size = size == 1 ? 1
+                     : 1 << (64 - __builtin_clz(size - 1)); // Round up to next power of 2
 
     if (size < 1 << alloc->min_order) size = 1 << alloc->min_order;
 
-    unsigned short order = __builtin_ctz(size); // Log2 of a power of 2 is the amount of trailing 0's
+    unsigned short order
+        = __builtin_ctz(size); // Log2 of a power of 2 is the amount of trailing 0's
 
     buddy_block *ret_block;
 
@@ -32,7 +35,7 @@ void *balloc(size_t size, buddy_allocator *alloc) {
                 for (int s = 0; s < splits; s++) {
                     split(alloc, ret_block);
                 }
-                
+
                 goto ret;
             }
         }

@@ -11,7 +11,7 @@
 
 // Memory related ones
 
-#define ENOMAP  -4 // Virtual address has no physical mapping
-#define ENOMEM  -5 // Out of memory
+#define ENOMAP -4 // Virtual address has no physical mapping
+#define ENOMEM -5 // Out of memory
 
 #endif /* __INCLUDE_FORS_KERRNO_H__ */

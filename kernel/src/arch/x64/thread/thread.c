@@ -11,15 +11,17 @@
 #include "forslib/string.h" // IWYU pragma: keep: clangd keeps thinking this header is not used without this pragma
 #include "limine.h"
 
-pml4_entry_t *new_blank_user_pml4() {
+pml4_entry_t *new_blank_user_pml4()
+{
     pml4_entry_t *new_pml4 = pfalloc_one();
 
-    for (int i = memmap_req.response->entry_count-1; i >= 0; i--) {
+    for (int i = memmap_req.response->entry_count - 1; i >= 0; i--) {
         struct limine_memmap_entry *ent = memmap_req.response->entries[i];
 
         if (ent->type != LIMINE_MEMMAP_RESERVED) {
             for (size_t off = 0; off < ent->length; off += ARCH_PAGE_SIZE) {
-                map_page_4k(new_pml4, ent->base + off, hhdm_request.response->offset + off, PSE_PRESENT | PSE_WRITABLE);
+                map_page_4k(new_pml4, ent->base + off,
+                    hhdm_request.response->offset + off, PSE_PRESENT | PSE_WRITABLE);
             }
         }
     }
@@ -27,7 +29,8 @@ pml4_entry_t *new_blank_user_pml4() {
     size_t fors_load = kernel_address_request.response->virtual_base;
     size_t fors_phys = kernel_address_request.response->physical_base;
 
-    for (size_t off = FORS_CODE_OFFSET; off < FORS_CODE_END_OFFSET; off += ARCH_PAGE_SIZE) {
+    for (size_t off = FORS_CODE_OFFSET; off < FORS_CODE_END_OFFSET;
+         off += ARCH_PAGE_SIZE) {
         map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT);
     }
 
@@ -36,13 +39,15 @@ pml4_entry_t *new_blank_user_pml4() {
     }
 
     for (size_t off = FORS_RW_OFFSET; off < FORS_RW_END_OFFSET; off += ARCH_PAGE_SIZE) {
-        map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT | PSE_WRITABLE);
+        map_page_4k(
+            new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT | PSE_WRITABLE);
     }
 
     return new_pml4;
 }
 
-long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user) {
+long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user)
+{
     thread *th;
     long tid = find_free_tid();
 
@@ -85,11 +90,13 @@ long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool us
     }
 }
 
-void schedule_set_current_thread() {
+void schedule_set_current_thread()
+{
     current_thread = schedule();
 }
 
-void arch_start_running_threads() {
+void arch_start_running_threads()
+{
     // Invoke the scheduler every 10 ticks
     add_timer_handle(&schedule_set_current_thread, 10);
     pic_unblock_irq(0); // Start timer.

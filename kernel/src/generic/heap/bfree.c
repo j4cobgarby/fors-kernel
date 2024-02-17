@@ -1,6 +1,7 @@
 #include "fors/kheap.h"
 
-void bfree(void *ptr, buddy_allocator *alloc) {
+void bfree(void *ptr, buddy_allocator *alloc)
+{
 
     if (!ptr) return;
 
@@ -22,5 +23,5 @@ void bfree(void *ptr, buddy_allocator *alloc) {
                 return;
             }
         }
-    }     
+    }
 }
