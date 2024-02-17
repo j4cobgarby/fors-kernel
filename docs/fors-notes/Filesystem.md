@@ -4,20 +4,13 @@
 
 ### Filesystem Nodes (`fsnode_t`)
 
-In memory, files/directories from any filesystem type (e.g. ext2, fat, virtual ones) are represented by the same structure -- the `fsnode_t`. This provides a seamless interface to various types. fsnodes are conceptually very similar to inodes found in UNIX. They are an **in-core representation of a file or directory on a real disk, or of that in a virtual filesystem**.
-
-fsnodes are organised in a tree structure, where each fsnode has a pointer to the first of its children. All fsnodes also have a `sibling` pointer, which organises siblings into a linked list. Importantly, fsnodes don't contain pointers to their parents, because due to the nature of most filesystems, two different files with two different parents can refer to the same fsnode (due to hard-links).
+In memory, the information and data about files from any filesystem type (e.g. ext2, fat, virtual ones) are represented by the same structure -- the `fsnode_t`. This provides a seamless interface to various types. fsnodes are conceptually very similar to inodes found in UNIX. They are an **in-core representation of the metadata and actual data about a file or directory on a real disk, or of that in a virtual filesystem**.
 
 Memory for fsnodes is not actually allocated dynamically. There is a fixed maximum number of fsnodes, `NUM_FSNODES`. All fsnodes are stored in `fsnodes`.
 
-There isn't necessarily (or usually) an fsnode in the system for every single file on the filesystem. Getting a child fsnode from a parent, given the child's name, roughly looks like this:
+**fsnodes are not files** -- multiple different files with different names and locations can refer to the same fsnode. **files** (name-fsnode mappings) are represented by entries in directories, and **fsnodes** (filesystem node metadata objects) are _pointed to_ by files.
 
- 1) Look through the parent's children linked list, starting at `child`.
-    - If an fsnode by the correct name is found, then return it.
-    - Otherwise, continue to 2.
- 2) Call the `retrieve_child` method of the filesystem type associated with the parent, which requests the FS to return a new fsnode if the target file exists on disk (or wherever it likes).
-    - If an fsnode is returned, this is the target child. Return it.
-    - If NULL is returned, then either the `fsnodes` is full, or the child just doesn't exist.
+There isn't necessarily (or usually) an fsnode in the system for every single node on the filesystem media.
 
 So, what happens when the `fsnodes` array does fill up? Basically, when no more open files refer to a specific fsnode, it is seen as "free", so when a filesystem implementation is trying to read in a disk-node to an fsnode, they will see a free entry in the array and reallocate it.
 
@@ -51,7 +44,8 @@ Parameters:
  1) node = find_node(system root, path to open)
  2) file = {node = node, cursor = 0, mode = mode, proc = process id}
  3) find available slot in `open_files`, and insert file
- 3) increment node's reference count
+ 4) increment node's reference count
+ 5) call the fs implementation's open method in case it wants to do anything extra.
  4) return insertion index
 
 ### Closing a file
@@ -59,16 +53,58 @@ Parameters:
 Parameters:
  - file to close
 
- 1) decrement file->node's reference counter
- 2) if it is now at 0, call put_node on it
- 3) mark the file's entry in `open_files` as free
+ 1) call the fs implementation's close method in case it wants to do anything extra.
+ 2) decrement file->node's reference counter
+ 3) if it is now at 0, call put_node on it
+ 4) mark the file's entry in `open_files` as free
 
 ### Reading a file
+ - open file index
+ - number of bytes to read
+ - buffer in kernel address space 
+
+ 1) simply tell the fs implementation to perform this read.
+ 2) update access_time in the file's fsnode.
+
 ### Writing to a file
+
+Parameters:
+ - open file index
+ - number of bytes to write
+ - buffer in kernel address space
+
+ 1) tell the fs implementation to perform this write.
+ 2) update access_time and mod_time in the fsnode.
+
 ### Seeking in a file
 
+Parameters:
+ - open file index
+ - seek offset
+ - seek anchor type (relative, absolute, from start, from end)
+ 
+ 1) update cursor in the open file.
+ 2) call the fs implementation's seek method in case it needs to do anything extra.
+
 ### Creating a new file
+
+Parameters:
+ - new file whole path
+ - access permissions
+
+ 1) find parent node of given path
+ 2) call fs implementation's mknode method, which will try and create a new fsnode (importantly, this generates a new internal_id for the fsnode)
+ 3) if this returns NULL then either the method doesn't exist for the fs, or it failed, so then fail the procedure and return here.
+ 4) add the new fsnode to the fsnodes array.
+
 ### Creating a hard-link
+
+Parameters:
+ - the node to link to
+ - the path to the new link file
+
+ 1) find the parent node of the given path (which will be a directory)
+ 2) 
 
 ### Creating a directory
 ### Deleting a directory

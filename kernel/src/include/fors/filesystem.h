@@ -16,8 +16,6 @@ typedef enum fsn_type_t {
 
 typedef struct fsnode_t {
     /* metadata */
-    char name[FILENAME_SIZE];
-
     struct mount_t *mountpoint;
     long internal_id; // fs-internal "inode" num
     fsn_id_t id;
@@ -33,22 +31,6 @@ typedef struct fsnode_t {
     timestamp_t create_time;
 
     unsigned ref_count;
-
-    /* tree */
-    struct fsnode_t *sibling_left, *sibling_right;
-    struct fsnode_t *child;
-
-    /*            ...
-                   |
-                parent <-> ...
-                /     \
-               /       \
-           *this* <-> sibling <-> ...
-            /  \
-           /    \
-       child <-> child 2 <-> ...
-    */
-
 } fsnode_t;
 
 typedef struct mount_t {
@@ -62,6 +44,20 @@ typedef struct openfile_t {
     long cursor;
     of_mode_t mode;
     pid_t proc;
+
+    struct openfile_t *child;
+    struct openfile_t *prev_sibling, *next_sibling;
+
+    /*            ...
+                   |
+                parent <-> ...
+                /     \
+               /       \
+           *this* <-> sibling <-> ...
+            /  \
+           /    \
+       child <-> child 2 <-> ...
+    */
 } openfile_t;
 
 typedef struct filesystem_type_t {
@@ -87,6 +83,8 @@ fsnode_t *get_node(fsnode_t *parent, const char *path);
  * is found and the filesystem implementation is asked to provide the node. Failing this,
  * NULL is returned. */
 fsnode_t *find_node(fsnode_t *root, const char *path);
+/* Find the parent node of a given path */
+fsnode_t *find_parent(fsnode_t *root, const char *path);
 fsnode_t *get_node_byiid(mount_t *root, long internal_id);
 
 /* Return a node, freeing its space in the nodes array. */
