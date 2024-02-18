@@ -94,8 +94,7 @@ Parameters:
 
  1) find parent node of given path
  2) call fs implementation's mknode method, which will try and create a new fsnode (importantly, this generates a new internal_id for the fsnode)
- 3) if this returns NULL then either the method doesn't exist for the fs, or it failed, so then fail the procedure and return here.
- 4) add the new fsnode to the fsnodes array.
+ 3) add the new fsnode to the fsnodes array.
 
 ### Creating a hard-link
 
@@ -104,10 +103,26 @@ Parameters:
  - the path to the new link file
 
  1) find the parent node of the given path (which will be a directory)
- 2) 
+ 2) call the fs implementation to add a directory entry to the parent node, pointing to the node to link to.
 
 ### Creating a directory
-### Deleting a directory
-### Reading entries from a directory
 
+Parameters:
+ - new directory whole path
+ - access permissions
+
+ 1) find the parent node of the given path
+ 2) call the fs implementation's mknode method, which will try and create a new fsnode. In this case, we will specify to mknode that it should be a directory.
+ 3) add the new directory node to the fsnodes array.
+
+### Deleting a directory or regular file
+
+Parameters:
+ - path to object to delete
+
+ 1) if object is a directory and it is not empty, then return here.
+ 2) call fs implementation either for rmdir or rmnode.
+ 2) remove object from its sibling linked list, thereby also making its parent not point to it.
+
+### Reading entries from a directory
 ### Mounting a filesystem

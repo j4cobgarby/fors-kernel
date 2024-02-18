@@ -2,13 +2,16 @@
 #define INCLUDE_FORS_FILESYSTEM_H_
 
 #include "fors/types.h"
+#include <stddef.h>
 
 #define FILENAME_SIZE  32
 #define NUM_FSNODES    256
 #define NUM_MOUNTS     32
 #define NUM_OPEN_FILES 512
+#define NUM_FSLINKS    256
 
 typedef enum fsn_type_t {
+    EMPTY,
     FILE,
     DIRECTORY,
     MOUNTPOINT,
@@ -18,7 +21,6 @@ typedef struct fsnode_t {
     /* metadata */
     struct mount_t *mountpoint;
     long internal_id; // fs-internal "inode" num
-    fsn_id_t id;
 
     fsn_type_t type;
     fsn_perm_t perms;
@@ -31,67 +33,75 @@ typedef struct fsnode_t {
     timestamp_t create_time;
 
     unsigned ref_count;
+
+    /* Only used if the node is a directory */
+    struct fslink_t *child;
 } fsnode_t;
 
 typedef struct mount_t {
     dev_id_t dev;
+    struct filesystem_type_t *fs;
     fsnode_t *root_dir;
 } mount_t;
 
+typedef struct fslink_t {
+    char name[FILENAME_SIZE + 1];
+    fsnode_t *node;
+    struct fslink_t *prev, *next;
+} fslink_t;
+
 typedef struct openfile_t {
-    fsnode_t *node; /* fsnodes are guaranteed to stay in-core during the time that any
-                       open file referring to them exists. */
+    fslink_t *inst;
     long cursor;
     of_mode_t mode;
     pid_t proc;
-
-    struct openfile_t *child;
-    struct openfile_t *prev_sibling, *next_sibling;
-
-    /*            ...
-                   |
-                parent <-> ...
-                /     \
-               /       \
-           *this* <-> sibling <-> ...
-            /  \
-           /    \
-       child <-> child 2 <-> ...
-    */
 } openfile_t;
 
+/* fsnode_t: metadata of filesystem nodes
+ * fslink_t: name of a node, and which fsnode_t it links to
+ * openfile_t: an fslink_t that someone has got open
+               ...
+                |
+            parent <-> ...
+            /     \
+            /       \
+        *this* <-> sibling <-> ...
+        /  \
+        /    \
+    child <-> child 2 <-> ...
+*/
+
 typedef struct filesystem_type_t {
-    fsnode_t *(*retrieve_child)(fsnode_t *parent, const char *name);
-    int (*save_out)(openfile_t *file);
+    fsnode_t *(*retrieve_child)(fsnode_t *parent, const char *name, size_t len);
+    fsnode_t *(*node_from_id)(long internal_id);
+    int (*save_out)(fsnode_t *file);
 
     int (*f_seek)(openfile_t *file, long offset, int anchor);
     int (*f_read)(openfile_t *file, long nbytes, char *kbuffer);
     int (*f_write)(openfile_t *file, long nbytes, const char *kbuffer);
+
+    int (*newfile)(fslink_t *parent, const char *name, int flags);
+    int (*newdir)(fslink_t *parent, const char *name, int flags);
 } filesystem_type_t;
 
 extern fsnode_t fsnodes[NUM_FSNODES];
-extern mount_t mounts[NUM_MOUNTS];
+extern fslink_t fslinks[NUM_FSLINKS];
 extern openfile_t open_files[NUM_OPEN_FILES];
+extern mount_t mounts[NUM_MOUNTS];
 
-/* Adding a new (in-core) child node to a given parent directory's children list. */
-int add_child(fsnode_t *parent, fsnode_t *new);
-int add_child_byname(fsnode_t *parent, const char *new);
+int add_child(fsnode_t *parent, fsnode_t *new, const char *name);
+int del_child(fsnode_t *parent, fslink_t *to_del);
 
-fsnode_t *get_node(fsnode_t *parent, const char *path);
-/* Try to get a node of a given path under a given root dir. If the requested node has
- * been got before, then it's simply returned by reference. If not, the immediate parent
- * is found and the filesystem implementation is asked to provide the node. Failing this,
- * NULL is returned. */
+fsnode_t *get_node(fsnode_t *parent, const char *name);
 fsnode_t *find_node(fsnode_t *root, const char *path);
-/* Find the parent node of a given path */
 fsnode_t *find_parent(fsnode_t *root, const char *path);
-fsnode_t *get_node_byiid(mount_t *root, long internal_id);
+fsnode_t *get_node_byid(mount_t *root, long internal_id);
 
-/* Return a node, freeing its space in the nodes array. */
+/* e.g. /home/bob/main.c => main.c */
+const char *basename(const char *path);
+
 void put_node(fsnode_t *node);
 
-/* Normally when reading a file, the contents is buffered, true also for writing. This
- * function will tell the fs to actually save the file's contents to the file */
 int save_out(openfile_t *file);
 
 #endif // INCLUDE_FORS_FILESYSTEM_H_

@@ -28,6 +28,8 @@ void *memrchr(const void *mem, int c, size_t n)
         if (m[i] == c) f = &m[i];
     }
     return f;
+    // TODO: Why did I implement it like this? this is stupid, could just iterate from the
+    // back.
 }
 
 int memcmp(const void *mema, const void *memb, size_t n)
