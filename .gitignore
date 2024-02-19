@@ -9,3 +9,4 @@ compile_commands.json
 bx_enh_dbg.ini
 qemulog.txt
 qemuout.txt
+/test/a.out

@@ -122,9 +122,12 @@ fsnode_t *find_parent(fsnode_t *root, const char *path)
     last_delim = memrchr(path, '/', end - path);
 
     while ((next_delim = strnchr(path, '/', end - path)) != NULL) {
-        parent = get_node_n(parent, path, next_delim - path);
-        if (!parent) return NULL; /* Couldn't find intermediate directory */
+        if (next_delim - path > 0) { /* Skip empty fields; a//b == a/b */
+            parent = get_node_n(parent, path, next_delim - path);
+            if (!parent) return NULL; /* Couldn't find intermediate directory */
+        }
         if (next_delim == last_delim) break;
+        path = next_delim + 1;
     }
 
     return parent;
