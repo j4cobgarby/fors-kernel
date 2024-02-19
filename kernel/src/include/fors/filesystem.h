@@ -57,17 +57,20 @@ typedef struct openfile_t {
     pid_t proc;
 } openfile_t;
 
-/* fsnode_t: metadata of filesystem nodes
- * fslink_t: name of a node, and which fsnode_t it links to
- * openfile_t: an fslink_t that someone has got open
+/* fsnode_t: metadata of filesystem nodes.
+ *    ^
+ * fslink_t: name of a node; these represent the tree structure, and point to fsnodes.
+ *    ^
+ * openfile_t: an fslink_t that someone has got open.
+ *
                ...
                 |
             parent <-> ...
             /     \
-            /       \
+           /       \
         *this* <-> sibling <-> ...
         /  \
-        /    \
+       /    \
     child <-> child 2 <-> ...
 */
 

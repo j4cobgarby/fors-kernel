@@ -58,6 +58,8 @@ int del_child(fsnode_t *parent, fslink_t *to_del)
     else
         parent->child = NULL;
 
+    parent->child = NULL;
+
     return 0;
 }
 
@@ -101,26 +103,27 @@ fsnode_t *get_node_byid(mount_t *mount, long internal_id)
     return mount->fs->node_from_id(internal_id);
 }
 
+const char *first_of_trailing(const char *s, char c)
+{
+    const char *end;
+    for (end = s + strlen(s) - 1; end >= s && *end == '/'; end--) { }
+    return end + 1;
+}
+
 fsnode_t *find_parent(fsnode_t *root, const char *path)
 {
-    /* Maybe a complex function, finds the fsnode just before the one specified by path.
-     * Note that path is a whole path, from / (root). */
     fsnode_t *parent = root;
     const char *next_delim, *end, *last_delim;
 
     if (path[0] != '/') return NULL;
     path++; /* skip initial delim */
 
-    /* Trim trailing slashes */
-    for (end = path + strlen(path) - 1; end >= path && *end == '/'; end--)
-        ;
-    end++; // end is AT the first of the trailing slashes
-
-    last_delim = strnrchr(path, '/', end - path);
+    end = first_of_trailing(path, '/');
+    last_delim = memrchr(path, '/', end - path);
 
     while ((next_delim = strnchr(path, '/', end - path)) != NULL) {
-        parent = get_node_n(parent, path, end - path);
-        if (!parent) return NULL;
+        parent = get_node_n(parent, path, next_delim - path);
+        if (!parent) return NULL; /* Couldn't find intermediate directory */
         if (next_delim == last_delim) break;
     }
 
@@ -132,12 +135,8 @@ const char *basename(const char *path)
     const char *end, *last_delim;
     size_t len;
 
-    /* Trim trailing slashes */
-    for (end = path + strlen(path) - 1; end >= path && *end == '/'; end--)
-        ;
-    len = (end - path) + 1; // Length of string after trimming trailing /s
-
-    last_delim = strnrchr(path, '/', len);
+    end = first_of_trailing(path, '/');
+    last_delim = memrchr(path, '/', end - path);
 
     if (last_delim)
         return last_delim + 1;
