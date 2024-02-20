@@ -8,6 +8,14 @@ typedef long gid_t;
 typedef long pid_t;
 typedef long timestamp_t;
 
+typedef long fd_t;  /* Global file descriptor */
+typedef long pfd_t; /* Process-local fd */
+
+typedef int seek_anchor_t;
+#define ANCH_REL   0
+#define ANCH_START 1
+#define ANCH_END   2
+
 typedef unsigned fsn_perm_t;
 #define FP_RUSR (1 << 0)
 #define FP_WUSR (1 << 1)
@@ -20,7 +28,8 @@ typedef unsigned fsn_perm_t;
 #define FP_XOTH (1 << 8)
 
 typedef unsigned of_mode_t;
-#define OF_WRITE (1 << 0)
-#define OF_READ  (1 << 1)
+#define OF_WRITE  (1 << 0)
+#define OF_READ   (1 << 1)
+#define OF_APPEND (1 << 2)
 
 #endif // INCLUDE_FORS_TYPES_H_

@@ -3,6 +3,7 @@
 
 #include "fors/types.h"
 #include <stddef.h>
+#include <stdbool.h>
 
 #define FILENAME_SIZE  32
 #define NUM_FSNODES    256
@@ -57,6 +58,12 @@ typedef struct openfile_t {
     pid_t proc;
 } openfile_t;
 
+typedef struct dir_entry_t {
+    fsn_id_t node_id;
+    size_t off; /* offset to next dir entry */
+    char filename[];
+} dir_entry_t;
+
 /* fsnode_t: metadata of filesystem nodes.
  *    ^
  * fslink_t: name of a node; these represent the tree structure, and point to fsnodes.
@@ -77,7 +84,7 @@ typedef struct openfile_t {
 typedef struct filesystem_type_t {
     fsnode_t *(*retrieve_child)(fsnode_t *parent, const char *name, size_t len);
     fsnode_t *(*node_from_id)(long internal_id);
-    int (*save_out)(fsnode_t *file);
+    void (*put_node)(fsnode_t *file);
 
     int (*f_seek)(openfile_t *file, long offset, int anchor);
     int (*f_read)(openfile_t *file, long nbytes, char *kbuffer);
@@ -92,19 +99,38 @@ extern fslink_t fslinks[NUM_FSLINKS];
 extern openfile_t open_files[NUM_OPEN_FILES];
 extern mount_t mounts[NUM_MOUNTS];
 
+int can_read(fsnode_t *dir, pid_t p);
+int can_write(fsnode_t *dir, pid_t p);
+int can_exec(fsnode_t *dir, pid_t p);
+
 int add_child(fsnode_t *parent, fsnode_t *new, const char *name);
 int del_child(fsnode_t *parent, fslink_t *to_del);
+void put_node(fsnode_t *node);
 
 fsnode_t *get_node(fsnode_t *parent, const char *name);
 fsnode_t *find_node(fsnode_t *root, const char *path);
 fsnode_t *find_parent(fsnode_t *root, const char *path);
+fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p);
 fsnode_t *get_node_byid(mount_t *root, long internal_id);
 
-/* e.g. /home/bob/main.c => main.c */
+/* e.g. /home/bob/main.c => main.c
+ *      /home/bob/ => bob
+ *      / => '' */
 const char *basename(const char *path);
 
-void put_node(fsnode_t *node);
+fd_t vfs_open(pid_t p, const char *rel_path, of_mode_t mode);
+int vfs_close(pid_t p, fd_t fd);
+int vfs_seek(pid_t p, fd_t fd, long offset, seek_anchor_t anchor);
 
-int save_out(openfile_t *file);
+int vfs_read(pid_t p, fd_t fd, long nbytes, char *kbuffer);
+int vfs_write(pid_t p, fd_t fd, long nbytes, const char *kbuffer);
+int vfs_readdir(pid_t p, fd_t fd, long buf_bytes, char *kbuffer);
+
+int vfs_mkfile(pid_t p, const char *rel_path, fsn_perm_t perms);
+int vfs_mklink(pid_t p, const char *rel_path, const char *link_to);
+int vfs_mkdir(pid_t p, const char *rel_path, fsn_perm_t perms);
+int vfs_mountat(pid_t p, const char *rel_path, dev_id_t device);
+
+int vfs_delnode(pid_t p, const char *rel_path);
 
 #endif // INCLUDE_FORS_FILESYSTEM_H_

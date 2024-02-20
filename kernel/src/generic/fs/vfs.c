@@ -1,5 +1,21 @@
 #include "fors/filesystem.h"
+#include "fors/types.h"
 #include "forslib/string.h"
+
+int can_read(fsnode_t *dir, pid_t p)
+{
+    return p == -1 || dir->perms & FP_ROTH || (dir->perms & FP_RUSR && dir->user == p);
+}
+
+int can_write(fsnode_t *dir, pid_t p)
+{
+    return p == -1 || dir->perms & FP_WOTH || (dir->perms & FP_WUSR && dir->user == p);
+}
+
+int can_exec(fsnode_t *dir, pid_t p)
+{
+    return p == -1 || dir->perms & FP_XOTH || (dir->perms & FP_XUSR && dir->user == p);
+}
 
 int find_free_link()
 {
@@ -82,6 +98,13 @@ fsnode_t *get_node(fsnode_t *parent, const char *name)
     return get_node_n(parent, name, FILENAME_SIZE);
 }
 
+void put_node(fsnode_t *node)
+{
+    // TODO: Assert that node's ref count == 0
+    node->mountpoint->fs->put_node(node);
+    node->type = EMPTY;
+}
+
 fsnode_t *find_node(fsnode_t *root, const char *path)
 {
     fsnode_t *parent = find_parent(root, path);
@@ -110,7 +133,7 @@ const char *first_of_trailing(const char *s, char c)
     return end + 1;
 }
 
-fsnode_t *find_parent(fsnode_t *root, const char *path)
+fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p)
 {
     fsnode_t *parent = root;
     const char *next_delim, *end, *last_delim;
@@ -133,10 +156,14 @@ fsnode_t *find_parent(fsnode_t *root, const char *path)
     return parent;
 }
 
+fsnode_t *find_parent(fsnode_t *root, const char *path)
+{
+    return find_parent_checkperm(root, path, -1);
+}
+
 const char *basename(const char *path)
 {
     const char *end, *last_delim;
-    size_t len;
 
     end = first_of_trailing(path, '/');
     last_delim = memrchr(path, '/', end - path);
