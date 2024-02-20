@@ -2,6 +2,8 @@
 #include "fors/types.h"
 #include "forslib/string.h"
 
+fsnode_t *vfs_root = NULL;
+
 int can_read(fsnode_t *dir, pid_t p)
 {
     return p == -1 || dir->perms & FP_ROTH || (dir->perms & FP_RUSR && dir->user == p);
@@ -133,6 +135,8 @@ const char *first_of_trailing(const char *s, char c)
     return end + 1;
 }
 
+/* Find parent node, returning the parent node if given process has access to read all
+ * dirs up to given path's parent dir, or otherwise return NULL. */
 fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p)
 {
     fsnode_t *parent = root;
@@ -144,12 +148,17 @@ fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p)
     end = first_of_trailing(path, '/');
     last_delim = memrchr(path, '/', end - path);
 
+    /* exec permission on a directory means you can enter it */
+    if (!can_exec(parent, p)) return NULL;
+
     while ((next_delim = strnchr(path, '/', end - path)) != NULL) {
         if (next_delim - path > 0) { /* Skip empty fields; a//b == a/b */
             parent = get_node_n(parent, path, next_delim - path);
             if (!parent) return NULL; /* Couldn't find intermediate directory */
         }
         if (next_delim == last_delim) break;
+        if (!can_exec(parent, p)) return NULL;
+
         path = next_delim + 1;
     }
 

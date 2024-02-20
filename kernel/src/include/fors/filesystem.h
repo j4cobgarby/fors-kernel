@@ -52,7 +52,7 @@ typedef struct fslink_t {
 } fslink_t;
 
 typedef struct openfile_t {
-    fslink_t *inst;
+    fsnode_t *node;
     long cursor;
     of_mode_t mode;
     pid_t proc;
@@ -86,6 +86,8 @@ typedef struct filesystem_type_t {
     fsnode_t *(*node_from_id)(long internal_id);
     void (*put_node)(fsnode_t *file);
 
+    int (*f_open)(fsnode_t *node);
+    int (*f_close)(openfile_t *file);
     int (*f_seek)(openfile_t *file, long offset, int anchor);
     int (*f_read)(openfile_t *file, long nbytes, char *kbuffer);
     int (*f_write)(openfile_t *file, long nbytes, const char *kbuffer);
@@ -98,6 +100,7 @@ extern fsnode_t fsnodes[NUM_FSNODES];
 extern fslink_t fslinks[NUM_FSLINKS];
 extern openfile_t open_files[NUM_OPEN_FILES];
 extern mount_t mounts[NUM_MOUNTS];
+extern fsnode_t *vfs_root;
 
 int can_read(fsnode_t *dir, pid_t p);
 int can_write(fsnode_t *dir, pid_t p);
@@ -118,19 +121,19 @@ fsnode_t *get_node_byid(mount_t *root, long internal_id);
  *      / => '' */
 const char *basename(const char *path);
 
+int vfs_close(fd_t fd);
+int vfs_seek(fd_t fd, long offset, seek_anchor_t anchor);
+
+int vfs_read(fd_t fd, long nbytes, char *kbuffer);
+int vfs_write(fd_t fd, long nbytes, const char *kbuffer);
+int vfs_readdir(fd_t fd, long buf_bytes, char *kbuffer);
+
 fd_t vfs_open(pid_t p, const char *rel_path, of_mode_t mode);
-int vfs_close(pid_t p, fd_t fd);
-int vfs_seek(pid_t p, fd_t fd, long offset, seek_anchor_t anchor);
-
-int vfs_read(pid_t p, fd_t fd, long nbytes, char *kbuffer);
-int vfs_write(pid_t p, fd_t fd, long nbytes, const char *kbuffer);
-int vfs_readdir(pid_t p, fd_t fd, long buf_bytes, char *kbuffer);
-
 int vfs_mkfile(pid_t p, const char *rel_path, fsn_perm_t perms);
 int vfs_mklink(pid_t p, const char *rel_path, const char *link_to);
 int vfs_mkdir(pid_t p, const char *rel_path, fsn_perm_t perms);
 int vfs_mountat(pid_t p, const char *rel_path, dev_id_t device);
 
-int vfs_delnode(pid_t p, const char *rel_path);
+int vfs_delnode(const char *rel_path);
 
 #endif // INCLUDE_FORS_FILESYSTEM_H_
