@@ -126,14 +126,14 @@ int vfs_seek(fd_t fd, long offset, seek_anchor_t anchor);
 
 int vfs_read(fd_t fd, long nbytes, char *kbuffer);
 int vfs_write(fd_t fd, long nbytes, const char *kbuffer);
-int vfs_readdir(fd_t fd, long buf_bytes, char *kbuffer);
+int vfs_readdir(fd_t fd, long buf_bytes, dir_entry_t *kbuffer);
 
-fd_t vfs_open(pid_t p, const char *rel_path, of_mode_t mode);
-int vfs_mkfile(pid_t p, const char *rel_path, fsn_perm_t perms);
-int vfs_mklink(pid_t p, const char *rel_path, const char *link_to);
-int vfs_mkdir(pid_t p, const char *rel_path, fsn_perm_t perms);
-int vfs_mountat(pid_t p, const char *rel_path, dev_id_t device);
+fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode);
+int vfs_mkfile(pid_t p, const char *full_path, fsn_perm_t perms);
+int vfs_mklink(pid_t p, const char *full_path, const char *link_to);
+int vfs_mkdir(pid_t p, const char *full_path, fsn_perm_t perms);
+int vfs_mountat(pid_t p, const char *full_path, dev_id_t device);
 
-int vfs_delnode(const char *rel_path);
+int vfs_delnode(const char *full_path);
 
 #endif // INCLUDE_FORS_FILESYSTEM_H_
