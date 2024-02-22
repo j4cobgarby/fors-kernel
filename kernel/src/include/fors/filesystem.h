@@ -33,7 +33,7 @@ typedef struct fsnode_t {
     timestamp_t mod_time;
     timestamp_t create_time;
 
-    unsigned ref_count;
+    unsigned ref_count; /* How many open files refer to me? */
 
     /* Only used if the node is a directory */
     struct fslink_t *child;
@@ -92,8 +92,8 @@ typedef struct filesystem_type_t {
     int (*f_read)(openfile_t *file, long nbytes, char *kbuffer);
     int (*f_write)(openfile_t *file, long nbytes, const char *kbuffer);
 
-    int (*newfile)(fslink_t *parent, const char *name, int flags);
-    int (*newdir)(fslink_t *parent, const char *name, int flags);
+    int (*newfile)(fsnode_t *parent, const char *name, fsn_perm_t perms);
+    int (*newdir)(fsnode_t *parent, const char *name, fsn_perm_t perms);
 } filesystem_type_t;
 
 extern fsnode_t fsnodes[NUM_FSNODES];

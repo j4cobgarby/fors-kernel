@@ -1,10 +1,27 @@
 #include "fors/filesystem.h"
 #include "fors/types.h"
+#include <string.h>
 
 fd_t find_free_fd(openfile_t *arr, size_t size)
 {
     for (size_t i = 0; i < size; i++) {
         if (arr[i].node == NULL) return i;
+    }
+    return -1;
+}
+
+long find_free_fsnode()
+{
+    for (size_t i = 0; i < NUM_FSNODES; i++) {
+        if (fsnodes[i].type != EMPTY) return i;
+    }
+    return -1;
+}
+
+long find_free_link()
+{
+    for (size_t i = 0; i < NUM_FSLINKS; i++) {
+        if (fslinks[i].node != NULL) return i;
     }
     return -1;
 }
@@ -26,7 +43,6 @@ fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
     fsnode_t *node = get_node(parent, basename(full_path));
     if ((mode & OF_APPEND || mode & OF_WRITE) && !can_write(node, p)) return -1;
     if (mode & OF_READ && !can_read(node, p)) return -1;
-
     if (node->mountpoint->fs->f_open(node) < 0) return -1;
 
     fd_t new_fd = find_free_fd(open_files, NUM_OPEN_FILES);
@@ -38,7 +54,6 @@ fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
     new_of->node = node;
     new_of->cursor = 0;
     new_of->proc = p;
-
     new_of->node->ref_count++;
 
     return new_fd;
@@ -85,4 +100,19 @@ int vfs_write(fd_t fd, long nbytes, const char *kbuffer)
 int vfs_readdir(fd_t fd, long buf_bytes, dir_entry_t *kbuffer)
 {
     return -1;
+}
+
+/* Instructs the filesystem implementation of the parent of the new filepath to create a
+ * new file, in whichever way it wants. Then, whenever get_node and friends are called
+ * later, this new file will be available. */
+int vfs_mkfile(pid_t p, const char *full_path, fsn_perm_t perms)
+{
+    fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
+    if (!parent) return -1;
+    if (!can_write(parent, p)) return -1;
+
+    if (parent->mountpoint->fs->newfile(parent, basename(full_path), perms) < 0)
+        return -1;
+
+    return 0;
 }
