@@ -6,17 +6,20 @@ fsnode_t *vfs_root = NULL;
 
 int can_read(fsnode_t *dir, pid_t p)
 {
-    return p == -1 || dir->perms & FP_ROTH || (dir->perms & FP_RUSR && dir->user == p);
+    return p == -1 || dir->perms & FP_ROTH
+        || (dir->perms & FP_RUSR && dir->user == p);
 }
 
 int can_write(fsnode_t *dir, pid_t p)
 {
-    return p == -1 || dir->perms & FP_WOTH || (dir->perms & FP_WUSR && dir->user == p);
+    return p == -1 || dir->perms & FP_WOTH
+        || (dir->perms & FP_WUSR && dir->user == p);
 }
 
 int can_exec(fsnode_t *dir, pid_t p)
 {
-    return p == -1 || dir->perms & FP_XOTH || (dir->perms & FP_XUSR && dir->user == p);
+    return p == -1 || dir->perms & FP_XOTH
+        || (dir->perms & FP_XUSR && dir->user == p);
 }
 
 int find_free_link()
@@ -32,6 +35,19 @@ int find_free_node()
     for (int i = 0; i < NUM_FSNODES; i++)
         if (fsnodes[i].ref_count == 0) return i;
     return -1;
+}
+
+fd_t find_free_fd_in(openfile_t *arr, size_t size)
+{
+    for (size_t i = 0; i < size; i++) {
+        if (arr[i].node == NULL) return i;
+    }
+    return -1;
+}
+
+fd_t find_free_fd()
+{
+    return find_free_fd_in(open_files, NUM_OPEN_FILES);
 }
 
 /* add_child
@@ -81,7 +97,7 @@ int del_child(fsnode_t *parent, fslink_t *to_del)
     return 0;
 }
 
-fsnode_t *get_node_n(fsnode_t *parent, const char *name, size_t len)
+fsnode_t *get_node_len(fsnode_t *parent, const char *name, size_t len)
 {
     /* First do a lookup on existing fslinks */
     for (fslink_t *link = parent->child; link; link = link->next) {
@@ -90,14 +106,14 @@ fsnode_t *get_node_n(fsnode_t *parent, const char *name, size_t len)
         }
     }
 
-    /* If that didn't work, ask the fs to get a child (maybe from the disk, or whatever it
-     * wants) */
+    /* If that didn't work, ask the fs to get a child (maybe from the disk, or
+     * whatever it wants) */
     return parent->mountpoint->fs->retrieve_child(parent, name, len);
 }
 
 fsnode_t *get_node(fsnode_t *parent, const char *name)
 {
-    return get_node_n(parent, name, FILENAME_SIZE);
+    return get_node_len(parent, name, FILENAME_SIZE);
 }
 
 void put_node(fsnode_t *node)
@@ -122,7 +138,8 @@ fsnode_t *get_node_byid(mount_t *mount, long internal_id)
     for (int i = 0; i < NUM_FSNODES; i++) {
         fn = &fsnodes[i];
         if (fn->type == EMPTY) continue;
-        if (fn->internal_id == internal_id && fn->mountpoint == mount) return fn;
+        if (fn->internal_id == internal_id && fn->mountpoint == mount)
+            return fn;
     }
 
     return mount->fs->node_from_id(internal_id);
@@ -135,8 +152,8 @@ const char *first_of_trailing(const char *s, char c)
     return end + 1;
 }
 
-/* Find parent node, returning the parent node if given process has access to read all
- * dirs up to given path's parent dir, or otherwise return NULL. */
+/* Find parent node, returning the parent node if given process has access to
+ * read all dirs up to given path's parent dir, or otherwise return NULL. */
 fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p)
 {
     fsnode_t *parent = root;
@@ -153,7 +170,7 @@ fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p)
 
     while ((next_delim = strnchr(path, '/', end - path)) != NULL) {
         if (next_delim - path > 0) { /* Skip empty fields; a//b == a/b */
-            parent = get_node_n(parent, path, next_delim - path);
+            parent = get_node_len(parent, path, next_delim - path);
             if (!parent) return NULL; /* Couldn't find intermediate directory */
         }
         if (next_delim == last_delim) break;

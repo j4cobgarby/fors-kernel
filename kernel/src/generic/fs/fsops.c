@@ -1,22 +1,14 @@
 #include "fors/filesystem.h"
 #include "fors/types.h"
 
-fd_t find_free_fd(openfile_t *arr, size_t size)
-{
-    for (size_t i = 0; i < size; i++) {
-        if (arr[i].node == NULL) return i;
-    }
-    return -1;
-}
-
 /* Open a file (or directory, etc.) at a given path.
- * Permissions are checked as if opened by process `p`, so the file is only opened if
- * all of the following conditions are met:
+ * Permissions are checked as if opened by process `p`, so the file is only
+ * opened if all of the following conditions are met:
  *  - All of the dirs leading up to the target have execute permission.
  *  - If opening with write or append mode, target is writeable.
  *  - If opening with read mode, target is readable.
- * A new `openfile_t` is assigned if it's allowed, and its index in `open_files` is
- * returned. Otherwise, some negative value is returned. */
+ * A new `openfile_t` is assigned if it's allowed, and its index in `open_files`
+ * is returned. Otherwise, some negative value is returned. */
 fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
 {
     fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
@@ -29,7 +21,7 @@ fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
 
     if (node->mountpoint->fs->f_open(node) < 0) return -1;
 
-    fd_t new_fd = find_free_fd(open_files, NUM_OPEN_FILES);
+    fd_t new_fd = find_free_fd();
     if (new_fd == -1) return -1;
 
     openfile_t *new_of = &open_files[new_fd];
@@ -45,10 +37,10 @@ fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
 }
 
 /* Close a file with a given descriptor.
- * This doesn't need to do any permission checking, because a process can only refer to a
- * global file descriptor through its local fd table.
- * This function just needs to mark the openfile as free, and decrease its node's
- * reference count. */
+ * This doesn't need to do any permission checking, because a process can only
+ * refer to a global file descriptor through its local fd table. This function
+ * just needs to mark the openfile as free, and decrease its node's reference
+ * count. */
 int vfs_close(fd_t fd)
 {
     openfile_t *f = &open_files[fd];
@@ -82,7 +74,7 @@ int vfs_write(fd_t fd, long nbytes, const char *kbuffer)
     return 0;
 }
 
-int vfs_readdir(fd_t fd, long buf_bytes, dir_entry_t *kbuffer)
+int vfs_readdir(fd_t fd, size_t n, dir_entry_t *kbuffer)
 {
     return -1;
 }
