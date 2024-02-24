@@ -103,8 +103,11 @@ typedef struct filesystem_type_t {
     int (*f_read)(openfile_t *file, long nbytes, char *kbuffer);
     int (*f_write)(openfile_t *file, long nbytes, const char *kbuffer);
 
-    int (*newfile)(fsnode_t *parent, const char *name, fsn_perm_t perms);
-    int (*newdir)(fsnode_t *parent, const char *name, fsn_perm_t perms);
+    int (*newfile)(fsnode_t *parent, const char *name, fsn_perm_t perms,
+        uid_t user, gid_t group);
+    int (*newdir)(fsnode_t *parent, const char *name, fsn_perm_t perms,
+        uid_t user, gid_t group);
+    int (*delnode)(fsnode_t *parent, const char *name);
 } filesystem_type_t;
 
 /* Global vars for storing all the vfs objects. No dynamic allocation. */
@@ -143,7 +146,7 @@ int vfs_write(fd_t fd, long nbytes, const char *kbuffer);
 int vfs_readdir(fd_t fd, size_t n, dir_entry_t *kbuffer);
 fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode);
 int vfs_mkfile(pid_t p, const char *full_path, fsn_perm_t perms);
-int vfs_mklink(pid_t p, const char *full_path, const char *link_to);
+int vfs_mkhardlink(pid_t p, const char *full_path, const char *link_to);
 int vfs_mkdir(pid_t p, const char *full_path, fsn_perm_t perms);
 int vfs_mountat(pid_t p, const char *full_path, dev_id_t device);
 int vfs_delnode(const char *full_path);

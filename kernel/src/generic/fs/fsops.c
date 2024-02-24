@@ -78,17 +78,42 @@ int vfs_readdir(fd_t fd, size_t n, dir_entry_t *kbuffer)
     return -1;
 }
 
-/* Instructs the filesystem implementation of the parent of the new filepath to create a
- * new file, in whichever way it wants. Then, whenever get_node and friends are called
- * later, this new file will be available. */
+/* Instructs the filesystem implementation of the parent of the new filepath to
+ * create a new file, in whichever way it wants. Then, whenever get_node and
+ * friends are called later, this new file will be available. */
 int vfs_mkfile(pid_t p, const char *full_path, fsn_perm_t perms)
 {
     fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
     if (!parent) return -1;
     if (!can_write(parent, p)) return -1;
-
-    if (parent->mountpoint->fs->newfile(parent, basename(full_path), perms) < 0)
+    // TODO: Retrieve uid and gid based on pid, to pass to newfile
+    if (parent->mountpoint->fs->newfile(
+            parent, basename(full_path), perms, 0, 0)
+        < 0)
         return -1;
-
     return 0;
+}
+
+int vfs_mkdir(pid_t p, const char *full_path, fsn_perm_t perms)
+{
+    fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
+    if (!parent) return -1;
+    if (!can_write(parent, p)) return -1;
+    if (parent->mountpoint->fs->newdir(parent, basename(full_path), perms, 0, 0)
+        < 0)
+        return -1;
+}
+
+int vfs_delnode(const char *full_path)
+{
+    fsnode_t *parent = find_parent(vfs_root, full_path);
+    if (!parent) return -1;
+    if (parent->mountpoint->fs->delnode(parent, basename(full_path)) < 0)
+        return -1;
+    return 0;
+}
+
+int vfs_mkhardlink(pid_t p, const char *full_path, const char *link_to)
+{
+    return -1;
 }
