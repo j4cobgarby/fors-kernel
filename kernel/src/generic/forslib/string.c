@@ -28,8 +28,8 @@ void *memrchr(const void *mem, int c, size_t n)
         if (m[i] == c) f = &m[i];
     }
     return f;
-    // TODO: Why did I implement it like this? this is stupid, could just iterate from the
-    // back.
+    // TODO: Why did I implement it like this? this is stupid, could just
+    // iterate from the back.
 }
 
 int memcmp(const void *mema, const void *memb, size_t n)
@@ -129,12 +129,12 @@ int strcmp(const char *s1, const char *s2)
     // Note: This compares memory up to and INCLUDING the \0 char of the shorter
     // of the two strings. This correctly handles the behaviour of a shorter
     // string counting as "less" than a longer one, all other things equal.
-    return memcmp(s1, s2, MIN(strlen(s1), strlen(s2)) + 1);
+    return memcmp(s1, s2, MIN(strlen(s1), strlen(s2)));
 }
 
 int strncmp(const char *s1, const char *s2, size_t n)
 {
-    return memcmp(s1, s2, MIN(strnlen(s1, n), strnlen(s2, n)) + 1);
+    return memcmp(s1, s2, MIN(strnlen(s1, n), strnlen(s2, n)));
 }
 
 char *strcpy(char *dest, const char *src)

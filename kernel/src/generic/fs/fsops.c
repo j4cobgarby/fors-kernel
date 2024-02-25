@@ -1,6 +1,7 @@
 #include "fors/filesystem.h"
 #include "fors/types.h"
-#include <string.h>
+#include "forslib/string.h"
+#include "fors/printk.h"
 
 /* Open a file (or directory, etc.) at a given path.
  * Permissions are checked as if opened by process `p`, so the file is only
@@ -13,12 +14,16 @@
 fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
 {
     fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
+    printk("[vfs_open] Parent @ %p\n", parent);
     if (!parent) return -1;
+    printk("[vfs_open] Parent id = %d\n", parent->internal_id);
     if (!can_exec(parent, p)) return -1;
 
     fsnode_t *node = get_node(parent, basename(full_path));
+    printk("[vfs_open] Node id = %d\n", node->internal_id);
     if ((mode & OF_APPEND || mode & OF_WRITE) && !can_write(node, p)) return -1;
     if (mode & OF_READ && !can_read(node, p)) return -1;
+
     if (node->mountpoint->fs->f_open(node) < 0) return -1;
 
     fd_t new_fd = find_free_fd();
@@ -53,24 +58,43 @@ int vfs_close(fd_t fd)
     return 0;
 }
 
+int vfs_seek(fd_t fd, long offset, int anchor)
+{
+    openfile_t *f = &open_files[fd];
+    if (!f->node) return -1;
+
+    return f->node->mountpoint->fs->f_seek(f, offset, anchor);
+
+    switch (anchor) {
+    case ANCH_REL:
+        if (f->cursor < 0) f->cursor = 0;
+        f->cursor += offset;
+        break;
+    case ANCH_START:
+        if (offset < 0) return -1;
+        f->cursor = offset;
+        break;
+    }
+}
+
 int vfs_read(fd_t fd, long nbytes, char *kbuffer)
 {
     openfile_t *f = &open_files[fd];
     if (!f->node) return -1;
+    if (f->node->type != FILE) return -1;
     if (!(f->mode & OF_READ)) return -1;
-    if (f->node->mountpoint->fs->f_read(f, nbytes, kbuffer) < 0) return -1;
+    return f->node->mountpoint->fs->f_read(f, nbytes, kbuffer);
     // TODO: Update node access time
-    return 0;
 }
 
 int vfs_write(fd_t fd, long nbytes, const char *kbuffer)
 {
     openfile_t *f = &open_files[fd];
     if (!f->node) return -1;
+    if (f->node->type != FILE) return -1;
     if (!(f->mode & OF_WRITE)) return -1;
-    if (f->node->mountpoint->fs->f_write(f, nbytes, kbuffer) < 0) return -1;
+    return f->node->mountpoint->fs->f_write(f, nbytes, kbuffer);
     // TODO: Update node access and modify times
-    return 0;
 }
 
 int vfs_readdir(fd_t fd, size_t n, dir_entry_t *kbuffer)

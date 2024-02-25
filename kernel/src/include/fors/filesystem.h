@@ -11,13 +11,6 @@
 #define NUM_OPEN_FILES 512
 #define NUM_FSLINKS    256
 
-typedef enum fsn_type_t {
-    EMPTY,
-    FILE,
-    DIRECTORY,
-    MOUNTPOINT,
-} fsn_type_t;
-
 /* The metadata of a file (or dir). A single fsnode can have many different
  * names and locations in the vfs tree. */
 typedef struct fsnode_t {
@@ -46,7 +39,7 @@ typedef struct fsnode_t {
 typedef struct mount_t {
     dev_id_t dev;
     struct filesystem_type_t *fs;
-    fsnode_t *root_dir;
+    long root_fsnode;
 } mount_t;
 
 /* Represents an object in the vfs tree structure, which points to some fsnode.
@@ -93,15 +86,20 @@ typedef struct dir_entry_t {
 /* An implementation of a specifical filesystem, for example ext2 or fat, or
  * even some virtual one (NFS, etc.) */
 typedef struct filesystem_type_t {
-    fsnode_t *(*retrieve_child)(fsnode_t *parent, const char *name, size_t len);
-    fsnode_t *(*node_from_id)(long internal_id);
-    void (*put_node)(fsnode_t *file);
+    char name[8];
+
+    int (*initmnt)(mount_t *mnt); /* Fills in a mount_t, assuming that dev is
+                                     already filled in */
+
+    long (*retrieve_child)(fsnode_t *parent, const char *name, size_t name_len);
+    int (*node_from_id)(long internal_id, fsnode_t *node_to_fill);
+    int (*put_node)(fsnode_t *file);
 
     int (*f_open)(fsnode_t *node);
     int (*f_close)(openfile_t *file);
     int (*f_seek)(openfile_t *file, long offset, int anchor);
-    int (*f_read)(openfile_t *file, long nbytes, char *kbuffer);
-    int (*f_write)(openfile_t *file, long nbytes, const char *kbuffer);
+    int (*f_read)(openfile_t *file, size_t nbytes, char *kbuffer);
+    int (*f_write)(openfile_t *file, size_t nbytes, const char *kbuffer);
 
     int (*newfile)(fsnode_t *parent, const char *name, fsn_perm_t perms,
         uid_t user, gid_t group);

@@ -11,6 +11,13 @@ typedef long timestamp_t;
 typedef long fd_t;  /* Global file descriptor */
 typedef long pfd_t; /* Process-local fd */
 
+typedef enum fsn_type_t {
+    EMPTY,
+    FILE,
+    DIRECTORY,
+    MOUNTPOINT,
+} fsn_type_t;
+
 typedef int seek_anchor_t;
 #define ANCH_REL   0
 #define ANCH_START 1

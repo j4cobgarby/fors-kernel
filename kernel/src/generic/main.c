@@ -2,12 +2,13 @@
 #include "fors/thread.h"
 #include "fors/init.h"
 #include "fors/memory.h"
+#include "fors/filesystem.h"
+#include "fors/fs/test.h"
 
 #include "forslib/string.h"
 
 #include "limine.h"
 
-#include <stdint.h>
 #include <stddef.h>
 
 volatile struct limine_framebuffer_request framebuf_req = {
@@ -35,18 +36,38 @@ void _start(void)
     arch_init_memory();
     arch_late_setup();
 
-    struct limine_framebuffer *fb = framebuf_req.response->framebuffers[0];
-    uint32_t *fb_arr = fb->address;
+    mount_t *testmnt = &mounts[0];
+    testmnt->dev = -1;
+    int mnted = testfs_type.initmnt(testmnt);
+    printk("TESTFS mounted with return code %d\n", mnted);
+
+    vfs_root = get_node_byid(testmnt, testmnt->root_fsnode);
+
+    printk("New VFS root with internal id %d is at %p\n", testmnt->root_fsnode,
+        vfs_root);
+
+    // fsnode_t *ch = get_node(vfs_root, "test.txt");
+    // printk("New child node at %p\n", ch);
+    fd_t f1 = vfs_open(-1, "/test.txt", OF_READ);
+    fd_t f2 = vfs_open(-1, "/testdir1/child1", OF_READ);
+    char buff[512];
+
+    printk("fds = [%d, %d]\n", f1, f2);
+    int bytes = vfs_read(f1, 512, buff);
+    printk("Read %d bytes: %s\n", bytes, buff);
+
+    bytes = vfs_read(f2, 512, buff);
+    printk("Read %d bytes: %s\n", bytes, buff);
 
     void *user_start = (void *)0x200000000;
-
     void *user_code_phys = pfalloc_one();
     void *user_stack = pfalloc_one();
 
     void *tmp = tmpmap(user_code_phys);
     if (tmp) memcpy(tmp, &task1, 4096);
 
-    int tid = mkthread("Funky Function", user_start, NULL, user_start + 4096 * 2, 1);
+    int tid = mkthread(
+        "Funky Function", user_start, NULL, user_start + 4096 * 2, 1);
 
     if (vmap(tid, user_code_phys, (void *)0x200000000, 4096,
             VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)
@@ -70,7 +91,8 @@ void _start(void)
     tmp = tmpmap(user_code_phys);
     if (tmp) memcpy(tmp, &task2, 4096);
 
-    int tid2 = mkthread("Another Thread", user_start, NULL, user_start + 4096 * 2, 1);
+    int tid2 = mkthread(
+        "Another Thread", user_start, NULL, user_start + 4096 * 2, 1);
 
     if (vmap(tid2, user_code_phys, (void *)0x200000000, 4096,
             VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)
@@ -117,8 +139,8 @@ void _start(void)
 
         // // for (int i = 0; i < 100; i++) {
         // //     for (int j = 0; j < 100; j++) {
-        // //         fb_arr[i * fb->pitch/4 + j] = (i % 256 << (0+sh)) + (j % 256 <<
-        // (8+sh));
+        // //         fb_arr[i * fb->pitch/4 + j] = (i % 256 << (0+sh)) + (j %
+        // 256 << (8+sh));
         // //     }
         // // }
     }
