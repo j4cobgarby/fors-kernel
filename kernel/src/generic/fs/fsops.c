@@ -1,7 +1,6 @@
 #include "fors/filesystem.h"
 #include "fors/types.h"
 #include "forslib/string.h"
-#include "fors/printk.h"
 
 /* Open a file (or directory, etc.) at a given path.
  * Permissions are checked as if opened by process `p`, so the file is only
@@ -14,13 +13,10 @@
 fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
 {
     fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
-    printk("[vfs_open] Parent @ %p\n", parent);
     if (!parent) return -1;
-    printk("[vfs_open] Parent id = %d\n", parent->internal_id);
     if (!can_exec(parent, p)) return -1;
 
     fsnode_t *node = get_node(parent, basename(full_path));
-    printk("[vfs_open] Node id = %d\n", node->internal_id);
     if ((mode & OF_APPEND || mode & OF_WRITE) && !can_write(node, p)) return -1;
     if (mode & OF_READ && !can_read(node, p)) return -1;
 

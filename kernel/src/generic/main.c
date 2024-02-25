@@ -19,6 +19,7 @@ volatile struct limine_framebuffer_request framebuf_req = {
 void task1(void *)
 {
     for (;;) {
+        // __asm__ volatile("xchg %bx, %bx");
         __asm__ volatile("int $0xf0" : : "a"(0));
     }
 }
@@ -26,6 +27,7 @@ void task1(void *)
 void task2(void *)
 {
     for (;;) {
+        // __asm__ volatile("xchg %bx, %bx");
         __asm__ volatile("int $0xf0" : : "a"(1));
     }
 }

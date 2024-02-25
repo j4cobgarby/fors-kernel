@@ -1,6 +1,5 @@
 #include "fors/filesystem.h"
 #include "fors/fs/test.h"
-#include "fors/printk.h"
 #include "fors/types.h"
 #include "forslib/string.h"
 #include "forslib/maths.h"
@@ -28,6 +27,8 @@ enum dir2_ids {
 
     __DIR2_SENTINAL,
 };
+
+#define __FINAL_SENTINAL __DIR2_SENTINAL
 
 const char *node_names[] = {
     ".",
@@ -75,25 +76,16 @@ int tfs_initmnt(mount_t *mnt)
 long tfs_retrieve_child(fsnode_t *parent, const char *name, size_t name_len)
 {
     if (parent->internal_id == ID_ROOT_DIR) {
-        printk("Searching for %s (...%d) in root\n", name, name_len);
         for (int i = 0; i < __ROOT_SENTINAL; i++) {
-            printk("Comparing with %s...", node_names[i]);
             if (strncmp(name, node_names[i], name_len) == 0) {
-                printk("Match!\n");
                 return i;
             }
-            printk("Nope.\n");
         }
     } else if (parent->internal_id == ID_TESTDIR1) {
-        printk("[tfs] Searching for %s (...%d) in testdir1 (%d)\n", name,
-            name_len, parent->internal_id);
         for (int i = __ROOT_SENTINAL; i < __DIR1_SENTINAL; i++) {
-            printk("Comparing with %s...", node_names[i]);
             if (strncmp(name, node_names[i], name_len) == 0) {
-                printk("Match!\n");
                 return i;
             }
-            printk("Nope.\n");
         }
     } else if (parent->internal_id == ID_TESTDIR2) {
         for (int i = __DIR1_SENTINAL; i < __DIR2_SENTINAL; i++) {
@@ -108,7 +100,7 @@ long tfs_retrieve_child(fsnode_t *parent, const char *name, size_t name_len)
 
 int tfs_node_from_id(long id, fsnode_t *node)
 {
-    if (id < 0 || id >= __DIR2_SENTINAL) return -1;
+    if (id < 0 || id >= __FINAL_SENTINAL) return -1;
 
     // We expect that node->mountpoint is already filled in
 

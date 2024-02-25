@@ -53,7 +53,8 @@ void idt_init()
     isr_seg.element.rpl = 0;
     isr_seg.element.entry = 1;
 
-    idt_attributes_t isr_attr = INIT_IDT_ATTRIBUTES(0, IDT_ATTRIBUTES_TYPE_TRAP, 0);
+    idt_attributes_t isr_attr
+        = INIT_IDT_ATTRIBUTES(0, IDT_ATTRIBUTES_TYPE_TRAP, 0);
 
     idt_attach_handler(0x00, isr_seg, isr_attr, &__isr_0x00);
     idt_attach_handler(0x01, isr_seg, isr_attr, &__isr_0x01);
@@ -70,8 +71,8 @@ void idt_init()
     idt_attach_handler(0x20, isr_seg, isr_attr, &__isr_0x20); // Timer
     idt_attach_handler(0x21, isr_seg, isr_attr, &__isr_0x21); // Keyboard
 
-    idt_attach_handler(
-        0xf0, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
+    idt_attach_handler(0xf0, isr_seg,
+        INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
 
     idt_attach_handler(0x08, isr_seg, isr_attr, &__isr_0x08);
     idt_attach_handler(0x0a, isr_seg, isr_attr, &__isr_0x0a);
@@ -92,8 +93,8 @@ void idt_load(struct idt_entry *table, int n_entries)
     __asm__("lidt %0" : : "m"(idt_desc));
 }
 
-void idt_attach_handler(
-    int vector, union segment_selector seg, idt_attributes_t attr, void *handler)
+void idt_attach_handler(int vector, union segment_selector seg,
+    idt_attributes_t attr, void *handler)
 {
     idt_table[vector] = INIT_IDT_ENTRY(seg, attr, (uint64_t)handler);
 }
@@ -108,10 +109,11 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         REGDUMP(ctx);
 
         /*
-        1) Check if the page trying to be accessed is currently mapped within the kernel
-        PML4. 2) If so, make the same mapping in the current PML4, because it must be an
-        interrupt which happened during usermode, that is trying to run kernel interrupt
-        handling code, or trying to access the kernel heap, or something like that.
+        1) Check if the page trying to be accessed is currently mapped within
+        the kernel PML4. 2) If so, make the same mapping in the current PML4,
+        because it must be an interrupt which happened during usermode, that is
+        trying to run kernel interrupt handling code, or trying to access the
+        kernel heap, or something like that.
         */
 
         for (;;) __asm__("hlt");
@@ -134,9 +136,10 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         if (thread_save != current_thread) { // current_thread has been changed!
             if (thread_save >= 0 && ctx->rip < 0xffff800000000000) {
                 // Save context if a thread is running
-                // If the check for rip being in user memory is not made, the situation
-                // can happen where a timer interrupt occurs at the moment when a syscall
-                // is sent by a user thread, which messes up the thread's execution.
+                // If the check for rip being in user memory is not made, the
+                // situation can happen where a timer interrupt occurs at the
+                // moment when a syscall is sent by a user thread, which messes
+                // up the thread's execution.
                 threads[thread_save].ctx = *ctx;
             }
             ctx = &threads[current_thread].ctx;

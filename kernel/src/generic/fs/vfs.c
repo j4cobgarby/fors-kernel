@@ -1,5 +1,4 @@
 #include "fors/filesystem.h"
-#include "fors/printk.h"
 #include "fors/types.h"
 #include "forslib/string.h"
 
@@ -107,9 +106,8 @@ int del_child(fsnode_t *parent, fslink_t *to_del)
     return 0;
 }
 
-fsnode_t *get_node_len(fsnode_t *parent, const char *name, size_t len)
+fsnode_t *get_node_with_len(fsnode_t *parent, const char *name, size_t len)
 {
-    printk("[get_node_len] name = %s, len = %d\n", name, len);
     /* First do a lookup on existing fslinks */
     for (fslink_t *link = parent->child; link; link = link->next) {
         if (strncmp(link->name, name, len) == 0) {
@@ -125,20 +123,14 @@ fsnode_t *get_node_len(fsnode_t *parent, const char *name, size_t len)
     fsnode_t *new_node = &fsnodes[new_node_index];
     new_node->mountpoint = parent->mountpoint;
 
-    printk("[get_node_len] asking fs for child %s(%d) in %d\n", name, len,
-        parent->internal_id);
     long id = parent->mountpoint->fs->retrieve_child(parent, name, len);
-    printk("[get_node_len] retrieved child id = %d\n", id);
-    printk("[get_node_len] requesting fs to make node (%p) out of that id.\n",
-        new_node);
     if (parent->mountpoint->fs->node_from_id(id, new_node) < 0) return NULL;
-    printk("[get_node_len] was successful.\n");
     return new_node;
 }
 
 fsnode_t *get_node(fsnode_t *parent, const char *name)
 {
-    return get_node_len(parent, name, strnlen(name, FILENAME_SIZE));
+    return get_node_with_len(parent, name, strnlen(name, FILENAME_SIZE));
 }
 
 void put_node(fsnode_t *node)
@@ -201,13 +193,8 @@ fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p)
 
     while ((next_delim = strnchr(path, '/', end - path)) != NULL) {
         if (next_delim - path > 0) { /* Skip empty fields; a//b == a/b */
-            printk("[find_parent_checkperm] Searching for %s (...%d) in %d\n",
-                path, next_delim - path, parent->internal_id);
-            parent = get_node_len(parent, path, next_delim - path);
-            printk("[find_parent_checkperm] New parent = %p\n", parent);
+            parent = get_node_with_len(parent, path, next_delim - path);
             if (!parent) return NULL; /* Couldn't find intermediate directory */
-            printk("[find_parent_checkperm] Success! Parent id = %d\n",
-                parent->internal_id);
         }
         if (next_delim == last_delim) break;
         if (!can_exec(parent, p)) return NULL;
