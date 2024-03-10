@@ -21,7 +21,8 @@ pml4_entry_t *new_blank_user_pml4()
         if (ent->type != LIMINE_MEMMAP_RESERVED) {
             for (size_t off = 0; off < ent->length; off += ARCH_PAGE_SIZE) {
                 map_page_4k(new_pml4, ent->base + off,
-                    hhdm_request.response->offset + off, PSE_PRESENT | PSE_WRITABLE);
+                    hhdm_request.response->offset + off,
+                    PSE_PRESENT | PSE_WRITABLE);
             }
         }
     }
@@ -29,24 +30,27 @@ pml4_entry_t *new_blank_user_pml4()
     size_t fors_load = kernel_address_request.response->virtual_base;
     size_t fors_phys = kernel_address_request.response->physical_base;
 
-    for (size_t off = FORS_CODE_OFFSET; off < FORS_CODE_END_OFFSET;
+    for (size_t off = FORS_CODE_OFFSET;
+         off < FORS_CODE_END_OFFSET + ARCH_PAGE_SIZE; off += ARCH_PAGE_SIZE) {
+        map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT);
+    }
+
+    for (size_t off = FORS_RO_OFFSET; off < FORS_RO_END_OFFSET + ARCH_PAGE_SIZE;
          off += ARCH_PAGE_SIZE) {
         map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT);
     }
 
-    for (size_t off = FORS_RO_OFFSET; off < FORS_RO_END_OFFSET; off += ARCH_PAGE_SIZE) {
-        map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT);
-    }
-
-    for (size_t off = FORS_RW_OFFSET; off < FORS_RW_END_OFFSET; off += ARCH_PAGE_SIZE) {
-        map_page_4k(
-            new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT | PSE_WRITABLE);
+    for (size_t off = FORS_RW_OFFSET; off < FORS_RW_END_OFFSET + ARCH_PAGE_SIZE;
+         off += ARCH_PAGE_SIZE) {
+        map_page_4k(new_pml4, fors_phys + off, fors_load + off,
+            PSE_PRESENT | PSE_WRITABLE);
     }
 
     return new_pml4;
 }
 
-long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user)
+long mkthread(
+    char *name, void (*entry)(void *), void *arg, void *stack, bool user)
 {
     thread *th;
     long tid = find_free_tid();
