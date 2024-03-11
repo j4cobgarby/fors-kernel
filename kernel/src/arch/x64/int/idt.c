@@ -143,7 +143,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
                 threads[thread_save].ctx = *ctx;
             }
             ctx = &threads[current_thread].ctx;
-            printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
+            // printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
         }
 
         pic_eoi(0);
@@ -160,7 +160,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         break;
 
     case 0xf0:
-        printk("Syscall (%ld)\n", ctx->rax, ctx->rip);
+        printk("Syscall (%ld) made by PID %d\n", ctx->rax, current_thread);
         break;
     default:
         printk("Unhandled interrupt <%#x>\n", ctx->vector);

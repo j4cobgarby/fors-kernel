@@ -1,0 +1,6 @@
+# Debugging session with random crashes with big array
+
+ - When I made a big big array (10,000 32 byte elements), then making a syscall from user mode would triple fault
+ - Checked TSS, GDT, IDT, paging
+ - For some reason, the memory where the TSS was was not paged in the user page tables
+ - It was basically an off-by-one error in the create thread function.

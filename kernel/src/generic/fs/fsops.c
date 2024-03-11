@@ -59,7 +59,7 @@ int vfs_seek(fd_t fd, long offset, int anchor)
     openfile_t *f = &open_files[fd];
     if (!f->node) return -1;
 
-    return f->node->mountpoint->fs->f_seek(f, offset, anchor);
+    if (f->node->mountpoint->fs->f_seek(f, offset, anchor) < 0) return -1;
 
     switch (anchor) {
     case ANCH_REL:
@@ -70,7 +70,12 @@ int vfs_seek(fd_t fd, long offset, int anchor)
         if (offset < 0) return -1;
         f->cursor = offset;
         break;
+    case ANCH_END:
+        // TODO: ANCH_END handling
+        return -1;
     }
+
+    return 0;
 }
 
 int vfs_read(fd_t fd, long nbytes, char *kbuffer)

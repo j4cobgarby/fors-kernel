@@ -130,7 +130,9 @@ int tfs_read(openfile_t *file, size_t nbytes, char *kbuffer)
         = "Hello, world! This is my test string, which is inside all of the "
           "files in a testfs filesystem! Wow!!!";
 
-    strncpy(kbuffer, msg, nbytes);
+    if (file->cursor >= (long)sizeof(msg)) return -1;
+
+    strncpy(kbuffer, msg + file->cursor, nbytes);
     return MIN(nbytes, sizeof(msg));
 }
 

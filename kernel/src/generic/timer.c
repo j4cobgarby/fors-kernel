@@ -24,7 +24,6 @@ int add_timer_handle(void (*cbk)(), unsigned long long n)
 void timer_tick()
 {
     ticks++;
-    printk("Timer tick %d\n", ticks);
 
     for (int i = 0; i < next_handle_ind; i++) {
         if (ticks % handles[i].n == 0) handles[i].cbk();

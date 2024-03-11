@@ -5,6 +5,7 @@
 #include "fors/filesystem.h"
 #include "fors/fs/test.h"
 
+#include "fors/types.h"
 #include "forslib/string.h"
 
 #include "limine.h"
@@ -18,18 +19,14 @@ volatile struct limine_framebuffer_request framebuf_req = {
 
 void task1(void *)
 {
-    for (;;) {
-        // __asm__ volatile("xchg %bx, %bx");
-        __asm__ volatile("int $0xf0" : : "a"(0));
-    }
+    __asm__ volatile("int $0xf0" : : "a"(0));
+    for (;;) { }
 }
 
 void task2(void *)
 {
-    for (;;) {
-        // __asm__ volatile("xchg %bx, %bx");
-        __asm__ volatile("int $0xf0" : : "a"(1));
-    }
+    __asm__ volatile("int $0xf0" : : "a"(0));
+    for (;;) { }
 }
 
 void _start(void)
@@ -52,6 +49,7 @@ void _start(void)
     // printk("New child node at %p\n", ch);
     fd_t f1 = vfs_open(-1, "/test.txt", OF_READ);
     fd_t f2 = vfs_open(-1, "/testdir1/child1", OF_READ);
+    vfs_seek(f2, 10, ANCH_START);
     char buff[512];
 
     printk("fds = [%d, %d]\n", f1, f2);
@@ -117,33 +115,7 @@ void _start(void)
     printk("Starting threads %d and %d\n", tid, tid2);
     arch_start_running_threads();
 
-    // pic_unblock_irq(0);
-
-    // uint32_t col = 0xff0000;
-    // uint32_t col2 = 0x00ff00;
-
     for (;;) {
         __asm__("hlt");
-
-        // for (int i = 0; i < 200; i++) {
-        //     for (int j = 0; j < 200; j++) {
-        //         if ((i < 100 && j < 100) || (i >= 100 && j >= 100)) {
-        //             fb_arr[i * fb->pitch/4 + j] = col;
-        //         } else {
-        //             fb_arr[i * fb->pitch/4 + j] = col2;
-        //         }
-        //     }
-        // }
-        // col >>= 8;
-        // if (col == 0x0) col = 0xff0000;
-        // col2 >>= 8;
-        // if (col2 == 0x0) col2 = 0xff0000;
-
-        // // for (int i = 0; i < 100; i++) {
-        // //     for (int j = 0; j < 100; j++) {
-        // //         fb_arr[i * fb->pitch/4 + j] = (i % 256 << (0+sh)) + (j %
-        // 256 << (8+sh));
-        // //     }
-        // // }
     }
 }

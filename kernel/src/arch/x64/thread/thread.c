@@ -30,6 +30,14 @@ pml4_entry_t *new_blank_user_pml4()
     size_t fors_load = kernel_address_request.response->virtual_base;
     size_t fors_phys = kernel_address_request.response->physical_base;
 
+    /* TODO: Verify correctness of following for-loops.
+     * At one point, to fix an error where sometimes certain pieces of data
+     * wouldn't be mapped (most importantly, the TSS wasn't getting mapped in
+     * user tables leading to crashes when doing syscalls), I now add
+     * ARCH_PAGE_SIZE to upper bound of these memory ranges. In theory this
+     * shouldn't be strictly necessary if instead we "properly" set the starts
+     * and ends to actual page boundaries. */
+
     for (size_t off = FORS_CODE_OFFSET;
          off < FORS_CODE_END_OFFSET + ARCH_PAGE_SIZE; off += ARCH_PAGE_SIZE) {
         map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT);
@@ -71,7 +79,7 @@ long mkthread(
             th->ctx.cs = USER_CS;
             th->ctx.ss = USER_SS;
             th->ctx.cr3 = (uint64_t)new_blank_user_pml4();
-            printk("Made new PML4 for thread %d at %p\n", tid, th->ctx.cr3);
+            // printk("Made new PML4 for thread %d at %p\n", tid, th->ctx.cr3);
         } else {
             th->ctx.cs = KERNEL_CS;
             th->ctx.ss = KERNEL_SS;
