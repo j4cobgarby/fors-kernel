@@ -7,6 +7,10 @@ export
 .PHONY: all
 all: $(IMG_PREF).iso
 
+.PHONY: bochs
+bochs:
+	bochs -q "com1: enabled=1, mode=file, dev=$(shell tty)"
+
 .PHONY: run
 run: $(IMG_PREF).iso
 	qemu-system-x86_64 -M q35 -m 2G -cdrom $< -boot d -serial stdio -display gtk \

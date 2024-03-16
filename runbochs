@@ -1,5 +1,0 @@
-#!/usr/bin/bash
-
-echo "> Setting bochs to use $(tty) for serial."
-sed "s#COMFILE#$(tty)#" ./bochsrc.template >bochsrc
-bochs
