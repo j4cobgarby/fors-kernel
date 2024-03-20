@@ -46,8 +46,9 @@
 // set serial parameters.
 // char_len may be 5, 6, 7, or 8, and sets the amount of bits in each word sent.
 // stop may be one of STOP_BITS_x, and will set to use x stop bits after each
-// transmission. parity may be one of PARITY_x, and will set the parity scheme to use.
-#define SET_LINE_CTRL(char_len, stop, parity)                                            \
+// transmission. parity may be one of PARITY_x, and will set the parity scheme
+// to use.
+#define SET_LINE_CTRL(char_len, stop, parity)                                  \
     ((char_len - 5) & 0x3) | (stop << 2) | (parity << 3)
 
 #define COM_PORT_COUNT 8
@@ -61,8 +62,9 @@ struct uart_com_port {
 
 /*  Initialise a com_port struct. Does not set the com port up. Use the function
     com_port_setup for that */
-#define INIT_COM_PORT(base)                                                              \
-    ((struct uart_com_port) { .io_port_base = base, .status = COM_PORT_STATUS_BUSY })
+#define INIT_COM_PORT(base)                                                    \
+    ((struct uart_com_port) {                                                  \
+        .io_port_base = base, .status = COM_PORT_STATUS_BUSY })
 
 extern struct uart_com_port *uart_port;
 
@@ -89,7 +91,8 @@ void com_sends(struct uart_com_port, const char *s);
 /*  Blocking, wait for and read a character from a given com port. */
 char com_read(struct uart_com_port);
 
-/*  Blocking, read chars from a given com port into a buffer, until a delimeter is read.
+/*  Blocking, read chars from a given com port into a buffer, until a delimeter
+ * is read.
  */
 void com_reads(struct uart_com_port, char *buff, char delim);
 

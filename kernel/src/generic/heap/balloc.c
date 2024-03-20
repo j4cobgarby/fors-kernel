@@ -12,18 +12,20 @@ void *balloc(size_t size, buddy_allocator *alloc)
     }
 
     size += sizeof(buddy_block);
-    size = size == 1 ? 1
-                     : 1 << (64 - __builtin_clz(size - 1)); // Round up to next power of 2
+
+    // Round up to next power of 2
+    size = size == 1 ? 1 : 1 << (64 - __builtin_clz(size - 1));
 
     if (size < 1 << alloc->min_order) size = 1 << alloc->min_order;
 
-    unsigned short order
-        = __builtin_ctz(size); // Log2 of a power of 2 is the amount of trailing 0's
+    // Log2 of a power of 2 is the amount of trailing 0's
+    unsigned short order = __builtin_ctz(size);
 
     buddy_block *ret_block;
 
     if (alloc->order_lists[order - alloc->min_order]) {
-        ret_block = remove_block(alloc, alloc->order_lists[order - alloc->min_order]);
+        ret_block
+            = remove_block(alloc, alloc->order_lists[order - alloc->min_order]);
         goto ret;
     } else {
         for (int n = order + 1; n <= alloc->max_order; n++) {

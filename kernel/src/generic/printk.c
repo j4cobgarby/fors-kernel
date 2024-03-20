@@ -70,7 +70,8 @@ static void print_i64(int64_t x, conversion_specifier *spec)
     }
 }
 
-static void print_u64_hex(uint64_t x, bool uppercase, conversion_specifier *spec)
+static void print_u64_hex(
+    uint64_t x, bool uppercase, conversion_specifier *spec)
 {
     static char hex_digits[] = "0123456789abcdef";
     static char hex_digits_upper[] = "0123456789ABCDEF";
@@ -92,7 +93,8 @@ static void print_u64_hex(uint64_t x, bool uppercase, conversion_specifier *spec
             leading_done = true;
         }
 
-        if (PRINTK_U64_HEX_LEN - i <= spec->precision || leading_done || i == 0) {
+        if (PRINTK_U64_HEX_LEN - i <= spec->precision || leading_done
+            || i == 0) {
             kputc(hex_digits[ind]);
         }
         // } else if (PRINTK_U64_HEX_LEN - i <= spec->field_width) {
@@ -150,8 +152,8 @@ const char *parse_conversion(const char *start, conversion_specifier *spec)
 
     spec->convspec = 0;
 
-    bool precision_begun
-        = false; // Has the '.' at the start of precision field been encountered?
+    bool precision_begun = false; // Has the '.' at the start of precision field
+                                  // been encountered?
 
     const char *c = start;
 
@@ -243,8 +245,8 @@ const char *parse_conversion(const char *start, conversion_specifier *spec)
         case CONVSPEC:
             if (char_is_specifier(*c)) {
                 spec->convspec = *c;
-                defaults_from_convspec(
-                    *c, &spec->field_width, &spec->precision, &spec->alternate_form);
+                defaults_from_convspec(*c, &spec->field_width, &spec->precision,
+                    &spec->alternate_form);
                 return c + 1; // Primary return point
             } else {
                 return NULL;

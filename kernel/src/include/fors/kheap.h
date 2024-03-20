@@ -5,8 +5,8 @@
 #include <stddef.h>
 
 // Total amount of memory supported is 2^(min_order + BUDDY_NUM_LISTS)
-// If an allocator is initialised with min_order=5 (32 bytes min allocation block),
-// then the total memory possible to be managed is 128 Gbytes.
+// If an allocator is initialised with min_order=5 (32 bytes min allocation
+// block), then the total memory possible to be managed is 128 Gbytes.
 #define BUDDY_NUM_LISTS 32
 
 typedef struct buddy_block {
@@ -32,7 +32,8 @@ extern buddy_allocator kheap_alloc;
 #define DATA(blkptr)    ((void *)(blkptr[1]))
 #define HEADER(dataptr) ((buddy_block *)((void *)dataptr - sizeof(buddy_block)))
 
-int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc);
+int buddy_init(
+    size_t size, void *ptr, size_t min_order, buddy_allocator *alloc);
 
 void *balloc(size_t size, buddy_allocator *alloc);
 void bfree(void *ptr, buddy_allocator *alloc);
