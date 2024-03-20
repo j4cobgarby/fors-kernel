@@ -1,6 +1,8 @@
 #ifndef INCLUDE_FORS_TYPES_H_
 #define INCLUDE_FORS_TYPES_H_
 
+typedef long long ssize_t;
+
 typedef long dev_id_t;
 typedef long fsn_id_t;
 typedef long uid_t;
@@ -8,8 +10,8 @@ typedef long gid_t;
 typedef long pid_t;
 typedef long timestamp_t;
 
-typedef long fd_t;  /* Global file descriptor */
-typedef long pfd_t; /* Process-local fd */
+typedef long fd_t; /* Global file descriptor */
+/* typedef long pfd_t; // Process-local fd */
 
 typedef enum fsn_type_t {
     EMPTY,

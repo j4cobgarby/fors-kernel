@@ -2,6 +2,7 @@
 #include "fors/memory.h"
 #include "arch/x64/memory.h"
 #include "fors/kheap.h"
+#include "fors/panic.h"
 #include "fors/printk.h"
 #include <stdint.h>
 
@@ -20,7 +21,8 @@ volatile struct limine_kernel_address_request kernel_address_request = {
     .revision = 0,
 };
 
-// The largest size that the kernel heap can ever grow to be. Must be a power of 2
+// The largest size that the kernel heap can ever grow to be. Must be a power of
+// 2
 #define KHEAP_MAXSIZE 65536 // 2^16
 
 buddy_allocator kheap_alloc; // Defined in kheap.h
@@ -38,14 +40,15 @@ void arch_init_memory()
     // KHEAP_MAXSIZE.
     uint64_t kheap_start = (uint64_t)&_FORS_HEAP_START;
 
-    printk("Kheap starts at %p (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
+    printk(
+        ") Kheap starts at %p (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
 
-    if (vmap(-1, pfalloc_one(), (void *)kheap_start, ARCH_PAGE_SIZE, VMAP_4K | VMAP_WRIT)
+    /* Map in kernel heap */
+    if (vmap(-1, pfalloc_one(), (void *)kheap_start, ARCH_PAGE_SIZE,
+            VMAP_4K | VMAP_WRIT)
         < 0) {
-        printk("Failed to map in kernel heap.\n");
+        KPANIC("Failed to map in kernel heap!");
     }
-
-    printk("Mapping in kernel heap.\n");
 
     buddy_init(ARCH_PAGE_SIZE, (void *)kheap_start, 5, &kheap_alloc);
 }

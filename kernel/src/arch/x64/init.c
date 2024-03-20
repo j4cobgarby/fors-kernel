@@ -12,8 +12,6 @@ void arch_early_setup()
 
 void arch_late_setup()
 {
-    printk("Setting up PIC remap.\n");
     pic_map(PIC_FIRST_VECTOR, PIC_FIRST_VECTOR + 8);
-
     pic_unblock_irq(1); // Keyboard
 }

@@ -26,6 +26,7 @@ typedef struct thread {
 
     long tid;                      // Unique ID
     char name[THREAD_NAME_LENGTH]; // Not necessarily unique name string
+    char *cwd;                     // Current working directory
 
     thread_status status;
 
@@ -40,7 +41,8 @@ extern long current_thread;
 // Finds a free TID, -1 if none available.
 long find_free_tid();
 
-long mkthread(char *name, void (*entry)(void *), void *arg, void *stack, bool user);
+long mkthread(
+    char *name, void (*entry)(void *), void *arg, void *stack, bool user);
 
 int enqueue_thread(long tid);
 long dequeue_thread();

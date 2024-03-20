@@ -4,6 +4,7 @@
 #include "fors/memory.h"
 #include "fors/filesystem.h"
 #include "fors/fs/test.h"
+#include "fors/panic.h"
 
 #include "fors/types.h"
 #include "forslib/string.h"
@@ -19,13 +20,8 @@ volatile struct limine_framebuffer_request framebuf_req = {
 
 void task1(void *)
 {
-    __asm__ volatile("int $0xf0" : : "a"(0));
-    for (;;) { }
-}
-
-void task2(void *)
-{
-    __asm__ volatile("int $0xf0" : : "a"(0));
+    const char *test_msg = "Initialising system!\n";
+    __asm__ volatile("int $0xf0" : : "a"(0), "S"(test_msg));
     for (;;) { }
 }
 
@@ -35,29 +31,11 @@ void _start(void)
     arch_init_memory();
     arch_late_setup();
 
+    /* Initialise filesystem root */
     mount_t *testmnt = &mounts[0];
     testmnt->dev = -1;
-    int mnted = testfs_type.initmnt(testmnt);
-    printk("TESTFS mounted with return code %d\n", mnted);
-
+    testfs_type.initmnt(testmnt);
     vfs_root = get_node_byid(testmnt, testmnt->root_fsnode);
-
-    printk("New VFS root with internal id %d is at %p\n", testmnt->root_fsnode,
-        vfs_root);
-
-    // fsnode_t *ch = get_node(vfs_root, "test.txt");
-    // printk("New child node at %p\n", ch);
-    fd_t f1 = vfs_open(-1, "/test.txt", OF_READ);
-    fd_t f2 = vfs_open(-1, "/testdir1/child1", OF_READ);
-    vfs_seek(f2, 10, ANCH_START);
-    char buff[512];
-
-    printk("fds = [%d, %d]\n", f1, f2);
-    int bytes = vfs_read(f1, 512, buff);
-    printk("Read %d bytes: %s\n", bytes, buff);
-
-    bytes = vfs_read(f2, 512, buff);
-    printk("Read %d bytes: %s\n", bytes, buff);
 
     void *user_start = (void *)0x200000000;
     void *user_code_phys = pfalloc_one();
@@ -72,7 +50,7 @@ void _start(void)
     if (vmap(tid, user_code_phys, (void *)0x200000000, 4096,
             VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)
         < 0) {
-        printk("Couldn't map userspace page\n");
+        KPANIC("Couldn't map userspace page\n");
         for (;;)
             ;
     }
@@ -80,39 +58,13 @@ void _start(void)
     if (vmap(tid, user_stack, (void *)0x200000000 + 4096, 4096,
             VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)
         < 0) {
-        printk("Couldn't map user stack.\n");
-        for (;;)
-            ;
-    }
-
-    user_code_phys = pfalloc_one();
-    user_stack = pfalloc_one();
-
-    tmp = tmpmap(user_code_phys);
-    if (tmp) memcpy(tmp, &task2, 4096);
-
-    int tid2 = mkthread(
-        "Another Thread", user_start, NULL, user_start + 4096 * 2, 1);
-
-    if (vmap(tid2, user_code_phys, (void *)0x200000000, 4096,
-            VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)
-        < 0) {
-        printk("Couldn't map userspace page\n");
-        for (;;)
-            ;
-    }
-
-    if (vmap(tid2, user_stack, (void *)0x200000000 + 4096, 4096,
-            VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)
-        < 0) {
-        printk("Couldn't map user stack.\n");
+        KPANIC("Couldn't map user stack.\n");
         for (;;)
             ;
     }
 
     enqueue_thread(tid);
-    enqueue_thread(tid2);
-    printk("Starting threads %d and %d\n", tid, tid2);
+    printk(") Now going to start thread %d\n", tid);
     arch_start_running_threads();
 
     for (;;) {

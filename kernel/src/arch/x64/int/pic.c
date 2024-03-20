@@ -37,13 +37,12 @@ void pic_map(uint8_t offset_master, uint8_t offset_slave)
     outb(PIC_MASTER_DAT, MODE_8086);
     SMALL_WAIT;
 
-    // Right now disable all IRQs, except IRQ2 (so the slave can raise IRQs if they're
-    // enabled)
+    // Right now disable all IRQs, except IRQ2 (so the slave can raise IRQs if
+    // they're enabled)
     outb(PIC_MASTER_DAT, 0xfb);
     outb(PIC_SLAVE_DAT, 0xff);
 
-    printk("Enabling interrupts.\n");
-
+    /* Enable interrupts for the first time */
     __asm__("sti");
 }
 

@@ -1,3 +1,4 @@
+#include "fors/panic.h"
 #include "fors/printk.h"
 #include "limine.h"
 #include "arch/x64/memory.h"
@@ -59,7 +60,7 @@ static void frame_insert(void *frame_ptr)
         }
     }
 
-    // TODO: Assert that here is never reached
+    KPANIC("Somehow couldn't insert page frame.");
 }
 
 void x64_init_physical_memory()
@@ -77,12 +78,12 @@ void x64_init_physical_memory()
 
     struct limine_memmap_response *mm_resp = memmap_req.response;
 
-    printk("Memory map received from Limine:\n");
+    printk(") Memory map received from Limine\n");
     for (int i = mm_resp->entry_count - 1; i >= 0; i--) {
         struct limine_memmap_entry *ent = mm_resp->entries[i];
 
-        printk(" >> [%s]: From %p ==> %p (%dK)\n", memtype_strs[ent->type], ent->base,
-            ent->base + ent->length, ent->length / 1024);
+        // printk(" >> [%s]: From %p ==> %p (%dK)\n", memtype_strs[ent->type],
+        //     ent->base, ent->base + ent->length, ent->length / 1024);
 
         if (ent->type == LIMINE_MEMMAP_USABLE) {
             for (int byte = ent->length - ARCH_PAGE_SIZE; byte >= 0;
@@ -92,8 +93,8 @@ void x64_init_physical_memory()
         }
     }
 
-    printk("Page frame pool initialised with %d free %d-byte frames.\n", free_frames,
-        ARCH_PAGE_SIZE);
+    printk(") Page frame pool initialised with %d free %d-byte frames.\n",
+        free_frames, ARCH_PAGE_SIZE);
 }
 
 void *pfalloc_one()
@@ -129,9 +130,10 @@ void *pfalloc_consecutive(unsigned int n)
 
     // Iterate until we find a suitable set or reach the end of the list
     while (curr) {
-        // If the current frame is immediately following the one before it, then increase
-        // the number of consecutive frames. If it's not, then reset the consecutive
-        // frames counter and the start frame of the current set.
+        // If the current frame is immediately following the one before it, then
+        // increase the number of consecutive frames. If it's not, then reset
+        // the consecutive frames counter and the start frame of the current
+        // set.
         if ((void *)curr == (void *)curr->prev + ARCH_PAGE_SIZE) {
             so_far++;
 

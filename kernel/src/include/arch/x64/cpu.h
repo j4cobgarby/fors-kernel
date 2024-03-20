@@ -56,33 +56,31 @@ typedef struct register_ctx_x64 {
 #define RFLAGS_IF        (1 << 9) // Interrupt enable
 #define RFLAGS_IOPL(lvl) ((lvl & 0x3) << 12)
 
-#define REGDUMP(ctx)                                                                     \
+#define REGDUMP(ctx)                                                           \
     printk("\
-cr3\t%p\n\
-r15\t%p\n\
-r14\t%p\n\
-r13\t%p\n\
-r12\t%p\n\
-r11\t%p\n\
-r10\t%p\n\
-r9\t%p\n\
-r8\t%p\n\
-rbp\t%p\n\
-rdi\t%p\n\
-rsi\t%p\n\
-rdx\t%p\n\
-rcx\t%p\n\
-rbx\t%p\n\
-rax\t%p\n\
-vector\t%p\n\
-error_code\t%p\n\
-rip\t%p\n\
-cs\t%p\n\
-rflags\t%p\n\
-rsp\t%p\n\
-ss\t%p\n",                                                                               \
-        ctx->cr3, ctx->r15, ctx->r14, ctx->r13, ctx->r12, ctx->r11, ctx->r10, ctx->r9,   \
-        ctx->r8, ctx->rbp, ctx->rdi, ctx->rsi, ctx->rdx, ctx->rcx, ctx->rbx, ctx->rax,   \
-        ctx->vector, ctx->error_code, ctx->rip, ctx->cs, ctx->rflags, ctx->rsp, ctx->ss)
+cr3\t%x\n\
+r15\t%x\n\
+r14\t%x\n\
+r13\t%x\n\
+r12\t%x\n\
+r11\t%x\n\
+r10\t%x\n\
+r9\t%x\n\
+r8\t%x\n\
+rbp\t%x\n\
+rdi\t%x\n\
+rsi\t%x\n\
+rdx\t%x\n\
+rcx\t%x\n\
+rbx\t%x\n\
+rax\t%x\n\
+rip\t%x\n\
+cs\t%x\n\
+rflags\t%x\n\
+rsp\t%x\n\
+ss\t%x\n",                                                                     \
+        ctx->cr3, ctx->r15, ctx->r14, ctx->r13, ctx->r12, ctx->r11, ctx->r10,  \
+        ctx->r9, ctx->r8, ctx->rbp, ctx->rdi, ctx->rsi, ctx->rdx, ctx->rcx,    \
+        ctx->rbx, ctx->rax, ctx->rip, ctx->cs, ctx->rflags, ctx->rsp, ctx->ss)
 
 #endif /* __INCLUDE_X64_CPU_H__ */

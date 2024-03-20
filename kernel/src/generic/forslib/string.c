@@ -21,15 +21,12 @@ void *memchr(const void *mem, int c, size_t n)
 
 void *memrchr(const void *mem, int c, size_t n)
 {
-    size_t i;
+    long i; /* not size_t cause we need to check if <0 */
     char *m = (char *)mem;
-    void *f = NULL;
-    for (i = 0; i < n; i++) {
-        if (m[i] == c) f = &m[i];
+    for (i = n - 1; i >= 0; i--) {
+        if (m[i] == c) return &m[i];
     }
-    return f;
-    // TODO: Why did I implement it like this? this is stupid, could just
-    // iterate from the back.
+    return NULL;
 }
 
 int memcmp(const void *mema, const void *memb, size_t n)

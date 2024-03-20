@@ -6,9 +6,11 @@
 #include "arch/x64/pit.h"
 
 #include "fors/memory.h"
+#include "fors/panic.h"
 #include "fors/printk.h"
 #include "fors/thread.h"
 #include "fors/timer.h"
+#include "fors/syscall.h"
 
 #include "forslib/string.h"
 
@@ -101,29 +103,23 @@ void idt_attach_handler(int vector, union segment_selector seg,
 
 void *interrupt_dispatch(register_ctx_x64 *ctx)
 {
-    int sc;
+    int sc, sysret;
     long thread_save;
     switch (ctx->vector) {
     case INT_PF:
-        printk("#PF(%d) :( Halting.\n", ctx->error_code);
-        REGDUMP(ctx);
-
-        /*
-        1) Check if the page trying to be accessed is currently mapped within
-        the kernel PML4. 2) If so, make the same mapping in the current PML4,
-        because it must be an interrupt which happened during usermode, that is
-        trying to run kernel interrupt handling code, or trying to access the
-        kernel heap, or something like that.
+        KPANIC_VA("Page Fault (%d)", ctx->error_code);
+        /* TODO:
+        1) Check if the page trying to be accessed is currently mapped
+           within the kernel PML4.
+        2) If so, make the same mapping in the
+           current PML4, because it must be an interrupt which happened during
+           usermode, that is trying to run kernel interrupt handling code, or
+           trying to access the kernel heap, or something like that.
         */
-
-        for (;;) __asm__("hlt");
     case INT_GP:
-        printk("#GP(%d) :( Halting.\n", ctx->error_code);
-        REGDUMP(ctx);
-        for (;;) __asm__("hlt");
+        KPANIC_VA("General Protection Fault (%d)", ctx->error_code);
     case INT_DE:
-        printk("Division by zero.\n");
-        for (;;) __asm__("hlt");
+        KPANIC("Division by zero encounters!");
 
     case PIC_FIRST_VECTOR: // PIT timer
         thread_save = current_thread;
@@ -142,8 +138,10 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
                 // up the thread's execution.
                 threads[thread_save].ctx = *ctx;
             }
+            /* After this interrupt finishes, the system registers are all set
+             * according to ctx, so by this mechanism we switch to a different
+             * task */
             ctx = &threads[current_thread].ctx;
-            // printk("Returning to %d [rip=%p]\n", current_thread, ctx->rip);
         }
 
         pic_eoi(0);
@@ -154,13 +152,21 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         if (!(sc & 0x80)) {
             printk("Keystroke (%#x)\n", sc);
         }
+        /* TODO: Buffer keypresses to some circular queue */
 
         pic_eoi(1);
 
         break;
 
     case 0xf0:
-        printk("Syscall (%ld) made by PID %d\n", ctx->rax, current_thread);
+        // sysret = syscall_dispatch(ctx->rax, ctx->rsi, ctx->rbx, ctx->rcx);
+        // ctx->rax = sysret;
+        if (ctx->rax == 0) {
+            printk(
+                ") (Task %d dbg) %s", current_thread, (const char *)ctx->rsi);
+        } else {
+            printk("Syscall made by task %d\n", current_thread);
+        }
         break;
     default:
         printk("Unhandled interrupt <%#x>\n", ctx->vector);

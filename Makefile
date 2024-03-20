@@ -4,6 +4,10 @@ ARCH	 = x64
 BUILD	 = build
 export
 
+# Emulation settings
+#QEMU_DISPLAY_TYPE ?= none
+QEMU_DISPLAY_TYPE = gtk
+
 .PHONY: all
 all: $(IMG_PREF).iso
 
@@ -13,12 +17,12 @@ bochs:
 
 .PHONY: run
 run: $(IMG_PREF).iso
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $< -boot d -serial stdio -display gtk \
+	qemu-system-x86_64 -M q35 -m 2G -cdrom $< -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
 -d mmu,int -D qemulog.txt -no-reboot -no-shutdown
 
 .PHONY: debug
 debug: $(IMG_PREF).iso
-	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $< -boot d -serial stdio -display gtk \
+	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $< -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
 -d mmu,int -D qemulog.txt -no-reboot -no-shutdown
 
 .PHONY: gdb
