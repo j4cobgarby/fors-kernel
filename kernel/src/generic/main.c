@@ -27,9 +27,7 @@ void task1(void *)
 
 void _start(void)
 {
-    arch_early_setup();
-    arch_init_memory();
-    arch_late_setup();
+    arch_initialise();
 
     /* Initialise filesystem root */
     mount_t *testmnt = &mounts[0];

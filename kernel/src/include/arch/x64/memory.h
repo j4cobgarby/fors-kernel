@@ -6,15 +6,18 @@
 
 #include "limine.h"
 
-#define ARCH_PAGE_SIZE 4096 // The size in bytes of page frames and virtual pages
+// The size in bytes of page frames and virtual pages
+#define ARCH_PAGE_SIZE 4096
+
+void memory_initialise();
 
 extern volatile struct limine_memmap_request memmap_req;
 extern volatile struct limine_hhdm_request hhdm_request;
 extern volatile struct limine_kernel_address_request kernel_address_request;
 
 extern const void *_FORS_KERNEL_START;
-extern const void *_FORS_KERNEL_END; // Defined in linker.ld as the end of the virtual
-                                     // memory the kernel's loaded at
+extern const void *_FORS_KERNEL_END; // Defined in linker.ld as the end of the
+                                     // virtual memory the kernel's loaded at
 
 extern const void *_FORS_KERNEL_CODE_START;
 extern const void *_FORS_KERNEL_CODE_END;
@@ -28,18 +31,20 @@ extern const void *_FORS_KERNEL_RW_END;
 extern const void *_FORS_KERNEL_TEMP_MAP_PAGE;
 extern const void *_FORS_HEAP_START;
 
-#define FORS_CODE_OFFSET                                                                 \
-    ((uint64_t)&_FORS_KERNEL_CODE_START - (uint64_t)&_FORS_KERNEL_START)
-#define FORS_CODE_END_OFFSET                                                             \
-    ((uint64_t)&_FORS_KERNEL_CODE_END - (uint64_t)&_FORS_KERNEL_START)
+#define FORS_CODE_OFFSET                                                       \
+    ((uint64_t) & _FORS_KERNEL_CODE_START - (uint64_t) & _FORS_KERNEL_START)
+#define FORS_CODE_END_OFFSET                                                   \
+    ((uint64_t) & _FORS_KERNEL_CODE_END - (uint64_t) & _FORS_KERNEL_START)
 
-#define FORS_RO_OFFSET ((uint64_t)&_FORS_KERNEL_RO_START - (uint64_t)&_FORS_KERNEL_START)
-#define FORS_RO_END_OFFSET                                                               \
-    ((uint64_t)&_FORS_KERNEL_RO_END - (uint64_t)&_FORS_KERNEL_START)
+#define FORS_RO_OFFSET                                                         \
+    ((uint64_t) & _FORS_KERNEL_RO_START - (uint64_t) & _FORS_KERNEL_START)
+#define FORS_RO_END_OFFSET                                                     \
+    ((uint64_t) & _FORS_KERNEL_RO_END - (uint64_t) & _FORS_KERNEL_START)
 
-#define FORS_RW_OFFSET ((uint64_t)&_FORS_KERNEL_RW_START - (uint64_t)&_FORS_KERNEL_START)
-#define FORS_RW_END_OFFSET                                                               \
-    ((uint64_t)&_FORS_KERNEL_RW_END - (uint64_t)&_FORS_KERNEL_START)
+#define FORS_RW_OFFSET                                                         \
+    ((uint64_t) & _FORS_KERNEL_RW_START - (uint64_t) & _FORS_KERNEL_START)
+#define FORS_RW_END_OFFSET                                                     \
+    ((uint64_t) & _FORS_KERNEL_RW_END - (uint64_t) & _FORS_KERNEL_START)
 
 struct frame_marker {
     struct frame_marker *next;
@@ -92,8 +97,9 @@ typedef uint64_t cr3_image;
 #define PSE_PAT         1L << 7
 #define PSE_GLOBAL      1L << 8
 #define PSE_HLATRESTART 1L << 11
-#define PSE_PT_PAT                                                                       \
-    1L << 12 // PAT bit is in a different place specifically for page table entries
+#define PSE_PT_PAT                                                             \
+    1L << 12 // PAT bit is in a different place specifically for page table
+             // entries
 #define PSE_XD 1L << 63
 
 #define HH_MASK                   0xffff'8000'0000'0000
@@ -149,28 +155,29 @@ typedef union gdt_table_entry {
 
 extern gdt_table_entry gdt_table[];
 
-#define INIT_SEG_DESCRIPTOR(base, limit, access, flags)                                  \
-    (gdt_table_entry)                                                                    \
-    {                                                                                    \
-        .limit_0_15 = (limit)&0xffff, .base_0_15 = (base)&0xffff,                        \
-        .base_16_23 = ((base) >> 16) & 0xff, .access_byte = access,                      \
-        .limit_16_19_and_flags = (((limit) >> 16) & 0xf) | (((flags)&0xf) << 4),         \
-        .base_24_31 = ((base) >> 24) & 0xff,                                             \
+#define INIT_SEG_DESCRIPTOR(base, limit, access, flags)                        \
+    (gdt_table_entry)                                                          \
+    {                                                                          \
+        .limit_0_15 = (limit) & 0xffff, .base_0_15 = (base) & 0xffff,          \
+        .base_16_23 = ((base) >> 16) & 0xff, .access_byte = access,            \
+        .limit_16_19_and_flags                                                 \
+            = (((limit) >> 16) & 0xf) | (((flags) & 0xf) << 4),                \
+        .base_24_31 = ((base) >> 24) & 0xff,                                   \
     }
 
-#define INIT_TSS_DESCRIPTOR_FIRST_HALF(base, limit)                                      \
-    (gdt_table_entry)                                                                    \
-    {                                                                                    \
-        .limit_0_15 = (limit)&0xffff, .base_0_15 = (base)&0xffff,                        \
-        .base_16_23 = ((base) >> 16) & 0xff, .access_byte = 0b10001001,                  \
-        .limit_16_19_and_flags = (((limit) >> 16) & 0xf) | ((0b1000) << 4),              \
-        .base_24_31 = ((base) >> 24) & 0xff,                                             \
+#define INIT_TSS_DESCRIPTOR_FIRST_HALF(base, limit)                            \
+    (gdt_table_entry)                                                          \
+    {                                                                          \
+        .limit_0_15 = (limit) & 0xffff, .base_0_15 = (base) & 0xffff,          \
+        .base_16_23 = ((base) >> 16) & 0xff, .access_byte = 0b10001001,        \
+        .limit_16_19_and_flags = (((limit) >> 16) & 0xf) | ((0b1000) << 4),    \
+        .base_24_31 = ((base) >> 24) & 0xff,                                   \
     }
 
-#define INIT_TSS_DESCRIPTOR_SECOND_HALF(base)                                            \
-    (gdt_table_entry)                                                                    \
-    {                                                                                    \
-        .base_32_63 = ((base) >> 32) & 0xffffffff, .reserved = 0                         \
+#define INIT_TSS_DESCRIPTOR_SECOND_HALF(base)                                  \
+    (gdt_table_entry)                                                          \
+    {                                                                          \
+        .base_32_63 = ((base) >> 32) & 0xffffffff, .reserved = 0               \
     }
 
 struct __attribute__((packed)) gdtr_image {
@@ -182,9 +189,9 @@ struct __attribute__((packed)) gdtr_image {
 #define SEG_AB_RW       1 << 1
 #define SEG_AB_DC       1 << 2
 #define SEG_AB_EXEC     1 << 3 // If set, this segment is executable.
-#define SEG_AB_CODE_DATA                                                                 \
-    1 << 4 // If set, this segment is code/data, otherwise it's some sort of system
-           // segment
+#define SEG_AB_CODE_DATA                                                       \
+    1 << 4 // If set, this segment is code/data, otherwise it's some sort of
+           // system segment
 #define SEG_AB_DPL(n)  ((n & 0x3) << 5)
 #define SEG_AB_PRESENT 1 << 7 // Must be set for any valid segment
 
@@ -193,8 +200,8 @@ struct __attribute__((packed)) gdtr_image {
 #define SEG_FLAG_4K_BLOCKS 1 << 3
 
 // Map the virtual page 'virt' to the page frame at 'phys'.
-int map_page_4k(
-    pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsigned int flags);
+int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt,
+    unsigned int flags);
 
 int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret);
 

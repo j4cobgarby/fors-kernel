@@ -1,9 +1,11 @@
+#include "fors/init.h"
 #include "arch/x64/idt.h"
 #include "fors/memory.h"
 #include "arch/x64/memory.h"
 #include "fors/kheap.h"
 #include "fors/panic.h"
 #include "fors/printk.h"
+
 #include <stdint.h>
 
 volatile struct limine_memmap_request memmap_req = {
@@ -27,7 +29,7 @@ volatile struct limine_kernel_address_request kernel_address_request = {
 
 buddy_allocator kheap_alloc; // Defined in kheap.h
 
-void arch_init_memory()
+void memory_initialise()
 {
     x64_init_physical_memory();
     x64_init_virtual_memory();
