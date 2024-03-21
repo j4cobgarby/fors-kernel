@@ -31,10 +31,10 @@ CFLAGS = -Wall -Wextra  	\
     -ggdb                   \
 
 LDFLAGS = \
-	-nostdlib -static		\
-	-m elf_x86_64			\
+	-nostdlib -static \
+	-m elf_x86_64 \
 	-z max-page-size=0x1000 \
-	-T linker.ld			\
+	-T linker.ld \
 	-no-pie
 
 NASMFLAGS += \
