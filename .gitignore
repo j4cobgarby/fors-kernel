@@ -10,6 +10,4 @@ bx_enh_dbg.ini
 qemulog.txt
 qemuout.txt
 /test/a.out
-
-# we generate a bochsrc on the fly
-bochsrc
+*.vim

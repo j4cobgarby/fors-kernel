@@ -1,0 +1,13 @@
+cpu: reset_on_triple_fault=0
+
+ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+ata0-master: type=cdrom, path=fors.iso, status=inserted
+
+boot: cdrom
+
+magic_break: enabled=1
+megs: 2048
+
+# This option isn't set here, actually in ./runbochs, so that the device
+# can be set to the current tty.
+# com1: enabled=1, mode=file, dev=/dev/pts/1
