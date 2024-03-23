@@ -11,6 +11,8 @@ void *balloc(size_t size, buddy_allocator *alloc)
         return NULL;
     }
 
+    /* All allocation regions have to, in addition to their desired contents,
+     * store a buddy block header structure */
     size += sizeof(buddy_block);
 
     // Round up to next power of 2
@@ -24,6 +26,9 @@ void *balloc(size_t size, buddy_allocator *alloc)
     buddy_block *ret_block;
 
     if (alloc->order_lists[order - alloc->min_order]) {
+        /* If we can find an available block of the exact size desired (so, the
+         * minimum block size that fits the required bytes), then we can
+         * immediately return this. */
         ret_block
             = remove_block(alloc, alloc->order_lists[order - alloc->min_order]);
         goto ret;
@@ -31,10 +36,13 @@ void *balloc(size_t size, buddy_allocator *alloc)
         for (int n = order + 1; n <= alloc->max_order; n++) {
             ret_block = alloc->order_lists[n - alloc->min_order];
 
+            /* If a block of this order (large than the target) exists, then we
+             * need to split it iteratively until it's the minimum size that
+             * still fits the required bytes */
             if (ret_block) {
                 int splits = n - order;
 
-                for (int s = 0; s < splits; s++) {
+                for (int split_n = 0; split_n < splits; split_n++) {
                     split(alloc, ret_block);
                 }
 
@@ -42,6 +50,8 @@ void *balloc(size_t size, buddy_allocator *alloc)
             }
         }
 
+        /* At this point, no available blocks have been found of any suitable
+         * order, so NULL will be returned. */
         ret_block = NULL;
     }
 
