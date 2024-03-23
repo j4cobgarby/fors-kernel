@@ -18,7 +18,7 @@ void *balloc(size_t size, buddy_allocator *alloc)
     // Round up to next power of 2
     size = size == 1 ? 1 : 1 << (64 - __builtin_clz(size - 1));
 
-    if (size < 1 << alloc->min_order) size = 1 << alloc->min_order;
+    if (size < 1U << alloc->min_order) size = 1 << alloc->min_order;
 
     // Log2 of a power of 2 is the amount of trailing 0's
     unsigned short order = __builtin_ctz(size);

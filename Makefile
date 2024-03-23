@@ -54,15 +54,15 @@ OBJS = $(addprefix $(BUILD)/, $(CFILES:.c=.o) $(NASMFILES:.asm=.o))
 all: $(TARGET_ISO)
 
 $(TARGET_ISO): $(KERNEL_EXE)
-	rm -rf $(BUILD)/iso
-	mkdir -p $(BUILD)/iso
+	@rm -rf $(BUILD)/iso
+	@mkdir -p $(BUILD)/iso
 
-	cp -v $(KERNEL_EXE) \
+	@cp -v $(KERNEL_EXE) \
 		limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin \
 		limine/limine-uefi-cd.bin \
 		$(BUILD)/iso
-	mkdir -p $(BUILD)/iso/EFI/BOOT
-	cp -v limine/BOOTX64.EFI limine/BOOTIA32.EFI $(BUILD)/iso/EFI/BOOT/
+	@mkdir -p $(BUILD)/iso/EFI/BOOT
+	@cp -v limine/BOOTX64.EFI limine/BOOTIA32.EFI $(BUILD)/iso/EFI/BOOT/
 
 	xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot \
 		-boot-load-size 4 -boot-info-table \
@@ -73,15 +73,15 @@ $(TARGET_ISO): $(KERNEL_EXE)
 	./limine/limine bios-install $@
 
 $(KERNEL_EXE): $(OBJS)#
-	$(LD) $(OBJS) $(LDFLAGS) -o $@
+	@$(LD) $(OBJS) $(LDFLAGS) -o $@
 
 $(BUILD)/$(SRC)/%.o: $(SRC)/%.c
-	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)/$(SRC)/%.o: $(SRC)/%.asm
-	mkdir -p $(dir $@)
-	nasm $(NASMFLAGS) $< -o $@
+	@mkdir -p $(dir $@)
+	@nasm $(NASMFLAGS) $< -o $@
 
 .PHONE: clean
 clean:
@@ -94,12 +94,12 @@ bochs:
 	bochs -q "com1: enabled=1, mode=file, dev=$(shell tty)"
 
 .PHONY: run
-run: $(IMG_PREF).iso
+run: $(TARGET_ISO)
 	qemu-system-x86_64 -M q35 -m 2G -cdrom $< -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
 -d mmu,int -D qemulog.txt -no-reboot -no-shutdown
 
 .PHONY: debug
-debug: $(IMG_PREF).iso
+debug: $(TARGET_ISO)
 	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $< -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
 -d mmu,int -D qemulog.txt -no-reboot -no-shutdown
 
