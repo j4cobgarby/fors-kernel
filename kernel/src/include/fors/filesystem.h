@@ -123,6 +123,7 @@ int find_free_link();
 int find_free_node();
 fd_t find_free_fd();
 const char *basename(const char *path);
+char *new_prepend_cwd(const char *cwd, const char *rel);
 
 /* Handling link tree and node references */
 int add_child(fsnode_t *parent, fsnode_t *new, const char *name);
