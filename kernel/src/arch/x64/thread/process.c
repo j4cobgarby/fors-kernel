@@ -1,11 +1,11 @@
-#include "fors/thread.h"
+#include "fors/process.h"
 #include "fors/timer.h"
 #include "arch/x64/pic.h"
 #include "fors/memory.h"
 
 #include "arch/x64/cpu.h"
 #include "arch/x64/memory.h"
-#include "arch/x64/thread_arch.h"
+#include "arch/x64/process_arch.h"
 
 #include "fors/printk.h"
 #include "forslib/string.h" // IWYU pragma: keep: clangd keeps thinking this header is not used without this pragma
@@ -57,27 +57,26 @@ pml4_entry_t *new_blank_user_pml4()
     return new_pml4;
 }
 
-long mkthread(
+long create_process(
     char *name, void (*entry)(void *), void *arg, void *stack, bool user)
 {
-    thread *th;
+    process *th;
     long tid = find_free_tid();
 
     if (tid < 0) {
         return -1;
     } else {
-        th = &threads[tid];
+        th = &procs[tid];
 
         th->tid = tid;
         th->present = true;
-        th->status = THR_READY;
-        strncpy(th->name, name, THREAD_NAME_LENGTH);
+        th->status = PROC_READY;
+        strncpy(th->name, name, PROC_NAME_LENGTH);
 
         if (user) {
             th->ctx.cs = USER_CS;
             th->ctx.ss = USER_SS;
             th->ctx.cr3 = (uint64_t)new_blank_user_pml4();
-            // printk("Made new PML4 for thread %d at %p\n", tid, th->ctx.cr3);
         } else {
             th->ctx.cs = KERNEL_CS;
             th->ctx.ss = KERNEL_SS;
@@ -100,14 +99,14 @@ long mkthread(
     }
 }
 
-void schedule_set_current_thread()
+void schedule_set_current_proc()
 {
-    current_thread = schedule();
+    current_proc = schedule();
 }
 
-void arch_start_running_threads()
+void arch_start_running_procs()
 {
     // Invoke the scheduler every 10 ticks
-    add_timer_handle(&schedule_set_current_thread, 1);
+    add_timer_handle(&schedule_set_current_proc, 1);
     pic_unblock_irq(0); // Start timer.
 }

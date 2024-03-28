@@ -2,7 +2,7 @@
 #include "fors/kerrno.h"
 #include "fors/memory.h"
 #include "fors/printk.h"
-#include "fors/thread.h"
+#include "fors/process.h"
 #include "limine.h"
 
 #include <stddef.h>
@@ -244,9 +244,9 @@ int vmap(int pid, void *pa, void *va, int size, int flags)
     if (pid == -1) {
         root_table = kernel_pml4_table;
     } else {
-        thread th = threads[pid];
-        if (!th.present) return EINVARG;
-        root_table = (pml4_entry_t *)th.ctx.cr3;
+        process pr = procs[pid];
+        if (!pr.present) return EINVARG;
+        root_table = (pml4_entry_t *)pr.ctx.cr3;
     }
 
     if (flags & VMAP_4K) {

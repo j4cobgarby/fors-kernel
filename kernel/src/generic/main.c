@@ -1,6 +1,6 @@
 #include "arch/x64/memory.h"
 #include "fors/printk.h"
-#include "fors/thread.h"
+#include "fors/process.h"
 #include "fors/init.h"
 #include "fors/memory.h"
 #include "fors/filesystem.h"
@@ -44,8 +44,8 @@ void _start(void)
     void *tmp = tmpmap(user_code_phys);
     if (tmp) memcpy(tmp, &task1, 4096);
 
-    int tid = mkthread("initial", user_start, NULL, user_stack_top_page + 4095, 1);
-    printk("Thread has RSP = %p\n", user_stack_top_page + 4095);
+    int tid = create_process(
+        "initial", user_start, NULL, user_stack_top_page + 4095, 1);
 
     if (vmap(tid, user_code_phys, (void *)0x200000000, 4096,
             VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)
@@ -59,12 +59,8 @@ void _start(void)
         KPANIC("Couldn't map user stack.\n");
     }
 
-    printk("_FORS_KERNEL_START = %p\n", &_FORS_KERNEL_START);
-    printk("User stack: virt %p -> phys %p\n", user_stack_top_page, user_stack);
-
-    enqueue_thread(tid);
-    printk(") Now going to start thread %d\n", tid);
-    arch_start_running_threads();
+    enqueue_proc(tid);
+    arch_start_running_procs();
 
     for (;;) {
         __asm__("hlt");

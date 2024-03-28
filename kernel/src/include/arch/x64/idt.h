@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #include "arch/x64/memory.h"
-#include "arch/x64/thread_arch.h"
 
 #define INT_DE  0  // Divide by zero
 #define INT_DB  1  // Debug

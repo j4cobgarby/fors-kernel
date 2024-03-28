@@ -8,7 +8,7 @@
 #include "fors/memory.h"
 #include "fors/panic.h"
 #include "fors/printk.h"
-#include "fors/thread.h"
+#include "fors/process.h"
 #include "fors/timer.h"
 #include "fors/syscall.h"
 
@@ -104,7 +104,7 @@ void idt_attach_handler(int vector, union segment_selector seg,
 void *interrupt_dispatch(register_ctx_x64 *ctx)
 {
     int sc, sysret;
-    long thread_save;
+    long proc_save;
     switch (ctx->vector) {
     case INT_PF:
         KPANIC_VA("Page Fault (%d)", ctx->error_code);
@@ -122,26 +122,26 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         KPANIC("Division by zero encounters!");
 
     case PIC_FIRST_VECTOR: // PIT timer
-        thread_save = current_thread;
+        proc_save = current_proc;
 
         // Tick the timer, which may call some timer handle callbacks.
         // These callbacks may do scheduling work, so after timer_tick
-        // the current_thread may have changed.
+        // the current_proc may have changed.
         timer_tick();
 
-        if (thread_save != current_thread) { // current_thread has been changed!
-            if (thread_save >= 0 && ctx->rip < 0xffff800000000000) {
-                // Save context if a thread is running
+        if (proc_save != current_proc) { // current_proc has been changed!
+            if (proc_save >= 0 && ctx->rip < 0xffff800000000000) {
+                // Save context if a process is running
                 // If the check for rip being in user memory is not made, the
                 // situation can happen where a timer interrupt occurs at the
-                // moment when a syscall is sent by a user thread, which messes
-                // up the thread's execution.
-                threads[thread_save].ctx = *ctx;
+                // moment when a syscall is sent by a user process, which messes
+                // up the process' execution.
+                procs[proc_save].ctx = *ctx;
             }
             /* After this interrupt finishes, the system registers are all set
              * according to ctx, so by this mechanism we switch to a different
              * task */
-            ctx = &threads[current_thread].ctx;
+            ctx = &procs[current_proc].ctx;
         }
 
         pic_eoi(0);
@@ -162,10 +162,9 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         // sysret = syscall_dispatch(ctx->rax, ctx->rsi, ctx->rbx, ctx->rcx);
         // ctx->rax = sysret;
         if (ctx->rax == 0) {
-            printk(
-                ") (Task %d dbg) %s", current_thread, (const char *)ctx->rsi);
+            printk(") (Task %d dbg) %s", current_proc, (const char *)ctx->rsi);
         } else {
-            printk("Syscall made by task %d\n", current_thread);
+            printk("Syscall made by task %d\n", current_proc);
         }
         break;
     default:

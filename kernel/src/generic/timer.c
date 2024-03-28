@@ -1,6 +1,4 @@
 #include "fors/timer.h"
-#include "fors/printk.h"
-#include "fors/thread.h"
 
 #define MAX_TIMER_HANDLES 8
 
