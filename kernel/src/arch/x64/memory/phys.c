@@ -65,6 +65,7 @@ static void frame_insert(void *frame_ptr)
 
 void x64_init_physical_memory()
 {
+#ifdef DEBUG_PRINT_LIMINE_MEMMAP
     static const char *const memtype_strs[] = {
         " * Usable           ",
         "   Reserved         ",
@@ -75,6 +76,7 @@ void x64_init_physical_memory()
         "   Kernel + Modules ",
         "   Framebuffer      ",
     };
+#endif
 
     struct limine_memmap_response *mm_resp = memmap_req.response;
 
@@ -82,8 +84,10 @@ void x64_init_physical_memory()
     for (int i = mm_resp->entry_count - 1; i >= 0; i--) {
         struct limine_memmap_entry *ent = mm_resp->entries[i];
 
+#ifdef DEBUG_PRINT_LIMINE_MEMMAP
         // printk(" >> [%s]: From %p ==> %p (%dK)\n", memtype_strs[ent->type],
         //     ent->base, ent->base + ent->length, ent->length / 1024);
+#endif
 
         if (ent->type == LIMINE_MEMMAP_USABLE) {
             for (int byte = ent->length - ARCH_PAGE_SIZE; byte >= 0;

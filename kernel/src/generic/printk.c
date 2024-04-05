@@ -73,8 +73,11 @@ static void print_i64(int64_t x, conversion_specifier *spec)
 static void print_u64_hex(
     uint64_t x, bool uppercase, conversion_specifier *spec)
 {
-    static char hex_digits[] = "0123456789abcdef";
+#ifdef PRINTK_UPPERCASE_HEX
     static char hex_digits_upper[] = "0123456789ABCDEF";
+#else
+    static char hex_digits[] = "0123456789abcdef";
+#endif
 
     bool leading_done = false;
 
