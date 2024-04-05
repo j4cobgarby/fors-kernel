@@ -11,6 +11,11 @@ KERNEL_EXE = $(BUILD)/fors.elf
 CC = clang
 LD = ld
 
+COFF = '\033[0m'
+CACC = '\033[1;36m'
+COK  = '\033[0;32m'
+CGREY = '\033[0;37m'
+
 CFLAGS = -Wall -Wextra  	\
 	-std=c2x			 	\
 	-nostdlib               \
@@ -64,7 +69,7 @@ $(TARGET_ISO): $(KERNEL_EXE)
 	@mkdir -p $(BUILD)/iso/EFI/BOOT
 	@cp limine/BOOTX64.EFI limine/BOOTIA32.EFI $(BUILD)/iso/EFI/BOOT/
 
-	@echo [XORRISO] Creating disk image $@
+	@echo -e $(CACC)[XORRISO]$(COFF) Creating disk image $@
 	@xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot \
 		-boot-load-size 4 -boot-info-table \
 		--efi-boot limine-uefi-cd.bin -efi-boot-part \
@@ -73,16 +78,17 @@ $(TARGET_ISO): $(KERNEL_EXE)
 	@./limine/limine bios-install $@ 2>/dev/null
 
 $(KERNEL_EXE): $(OBJS)
+	@echo -e $(CACC)[LD]$(COFF) Linking $@
 	@$(LD) $(OBJS) $(LDFLAGS) -o $@
 
 $(BUILD)/$(SRC)/%.o: $(SRC)/%.c
 	@mkdir -p $(dir $@)
-	@echo [CC] $<
+	@echo -e $(CACC)[CC] $(COK)$(notdir $<)$(COFF) .. $(dir $<)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)/$(SRC)/%.o: $(SRC)/%.asm
 	@mkdir -p $(dir $@)
-	@echo [NASM] $<
+	@echo -e $(CACC)[ASM] $(COK)$(notdir $<)$(COFF) .. $(dir $<)
 	@nasm $(NASMFLAGS) $< -o $@
 
 .PHONE: clean
