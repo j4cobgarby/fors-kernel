@@ -21,8 +21,8 @@ volatile struct limine_framebuffer_request framebuf_req = {
 
 void task1(void *)
 {
-    const char *test_msg = "Initialising system!\n";
-    __asm__ volatile("int $0xf0" : : "a"(0), "S"(test_msg));
+    // const char *test_msg = "Initialising system!\n";
+    __asm__ volatile("int $0xf0" : : "a"(0), "S"("testfile"));
     for (;;) { }
 }
 

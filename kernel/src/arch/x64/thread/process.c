@@ -1,4 +1,5 @@
 #include "fors/process.h"
+#include "fors/panic.h"
 #include "fors/timer.h"
 #include "arch/x64/pic.h"
 #include "fors/memory.h"
@@ -20,9 +21,12 @@ pml4_entry_t *new_blank_user_pml4()
 
         if (ent->type != LIMINE_MEMMAP_RESERVED) {
             for (size_t off = 0; off < ent->length; off += ARCH_PAGE_SIZE) {
-                map_page_4k(new_pml4, ent->base + off,
-                    hhdm_request.response->offset + off,
-                    PSE_PRESENT | PSE_WRITABLE);
+                if (map_page_4k(new_pml4, ent->base + off,
+                        hhdm_request.response->offset + off,
+                        PSE_PRESENT | PSE_WRITABLE)
+                    < 0) {
+                    KPANIC("Failed mapping.\n");
+                }
             }
         }
     }
@@ -40,19 +44,41 @@ pml4_entry_t *new_blank_user_pml4()
 
     for (size_t off = FORS_CODE_OFFSET;
          off < FORS_CODE_END_OFFSET + ARCH_PAGE_SIZE; off += ARCH_PAGE_SIZE) {
-        map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT);
+        if (map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT)
+            < 0) {
+            KPANIC("Failed mapping.\n");
+        }
     }
 
     for (size_t off = FORS_RO_OFFSET; off < FORS_RO_END_OFFSET + ARCH_PAGE_SIZE;
          off += ARCH_PAGE_SIZE) {
-        map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT);
+        if (map_page_4k(
+                new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT)) {
+            KPANIC("Failed mapping.\n");
+        }
     }
 
     for (size_t off = FORS_RW_OFFSET; off < FORS_RW_END_OFFSET + ARCH_PAGE_SIZE;
          off += ARCH_PAGE_SIZE) {
-        map_page_4k(new_pml4, fors_phys + off, fors_load + off,
-            PSE_PRESENT | PSE_WRITABLE);
+        if (map_page_4k(new_pml4, fors_phys + off, fors_load + off,
+                PSE_PRESENT | PSE_WRITABLE)) {
+            KPANIC("Failed mapping.\n");
+        }
     }
+
+    uint64_t kheap_start = (uint64_t)&_FORS_HEAP_START;
+    uint64_t kheap_phys;
+    int suc = map_lookup(kernel_pml4_table, kheap_start, &kheap_phys);
+
+    if (suc < 0) {
+        KPANIC("Failed to lookup kernel mapping of kernel heap.\n");
+    }
+
+    /* TODO: It's pretty messy that the heap has to be explicitly mapped in
+     * here. Wouldn't it just be better to copy over all page mappings that
+     * the kernel has, when creating a process? Or even better, do on demand
+     * mapping where kernel pages are mapped in only when accessed */
+    map_page_4k(new_pml4, kheap_phys, kheap_start, PSE_PRESENT | PSE_WRITABLE);
 
     return new_pml4;
 }

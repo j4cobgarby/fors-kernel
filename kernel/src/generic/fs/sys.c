@@ -24,7 +24,8 @@ char *new_prepend_cwd(const char *cwd, const char *rel)
 
 int __sys_open(const char *path, of_mode_t mode)
 {
-    char *full_path = new_prepend_cwd(procs[current_proc].cwd, path);
+    // char *full_path = new_prepend_cwd(procs[current_proc].cwd, path);
+    char *full_path = new_prepend_cwd("/", path);
     if (!full_path) KPANIC("Problem allocating memory.");
 
     int ret = vfs_open(current_proc, full_path, mode);

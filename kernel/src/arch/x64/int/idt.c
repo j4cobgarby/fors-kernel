@@ -160,7 +160,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
 
     case 0xf0:
         sysret = syscall_dispatch(ctx->rax, ctx->rsi, ctx->rbx, ctx->rcx);
-        //  ctx->rax = sysret;
+        // ctx->rax = sysret;
         if (ctx->rax == 0) {
             printk(") (Task %d dbg) %s", current_proc, (const char *)ctx->rsi);
         } else {
