@@ -8,7 +8,7 @@ QEMU_DISPLAY_TYPE = gtk
 
 KERNEL_EXE = $(BUILD)/fors.elf
 
-CC = gcc
+CC = clang
 LD = ld
 
 CFLAGS = -Wall -Wextra  	\
@@ -38,9 +38,9 @@ CFLAGS = -Wall -Wextra  	\
 
 LDFLAGS = \
 	-nostdlib -static \
-	-m elf_x86_64 \
 	-z max-page-size=0x1000 \
 	-T $(KERN_DIR)/linker.ld \
+	-m elf_x86_64 \
 	-no-pie
 
 NASMFLAGS += \
@@ -57,30 +57,32 @@ $(TARGET_ISO): $(KERNEL_EXE)
 	@rm -rf $(BUILD)/iso
 	@mkdir -p $(BUILD)/iso
 
-	@cp -v $(KERNEL_EXE) \
+	@cp $(KERNEL_EXE) \
 		limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin \
 		limine/limine-uefi-cd.bin \
 		$(BUILD)/iso
 	@mkdir -p $(BUILD)/iso/EFI/BOOT
-	@cp -v limine/BOOTX64.EFI limine/BOOTIA32.EFI $(BUILD)/iso/EFI/BOOT/
+	@cp limine/BOOTX64.EFI limine/BOOTIA32.EFI $(BUILD)/iso/EFI/BOOT/
 
-	xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot \
+	@echo [XORRISO] Creating disk image $@
+	@xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot \
 		-boot-load-size 4 -boot-info-table \
 		--efi-boot limine-uefi-cd.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label \
-		$(BUILD)/iso -o $@
+		$(BUILD)/iso -o $@ 2>/dev/null
+	@./limine/limine bios-install $@ 2>/dev/null
 
-	./limine/limine bios-install $@
-
-$(KERNEL_EXE): $(OBJS)#
+$(KERNEL_EXE): $(OBJS)
 	@$(LD) $(OBJS) $(LDFLAGS) -o $@
 
 $(BUILD)/$(SRC)/%.o: $(SRC)/%.c
 	@mkdir -p $(dir $@)
+	@echo [CC] $<
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)/$(SRC)/%.o: $(SRC)/%.asm
 	@mkdir -p $(dir $@)
+	@echo [NASM] $<
 	@nasm $(NASMFLAGS) $< -o $@
 
 .PHONE: clean
