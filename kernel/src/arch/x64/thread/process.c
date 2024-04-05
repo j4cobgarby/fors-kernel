@@ -86,6 +86,7 @@ pml4_entry_t *new_blank_user_pml4()
 long create_process(
     char *name, void (*entry)(void *), void *arg, void *stack, bool user)
 {
+    static const char *default_cwd = "/";
     process *th;
     long tid = find_free_tid();
 
@@ -97,6 +98,7 @@ long create_process(
         th->tid = tid;
         th->present = true;
         th->status = PROC_READY;
+        th->cwd = (char *)default_cwd;
         strncpy(th->name, name, PROC_NAME_LENGTH);
 
         if (user) {

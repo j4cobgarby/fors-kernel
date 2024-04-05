@@ -1,5 +1,7 @@
 #include "fors/filesystem.h"
+#include "fors/process.h"
 #include "fors/types.h"
+#include "fors/printk.h"
 #include "forslib/string.h"
 
 /* Open a file (or directory, etc.) at a given path.
@@ -13,8 +15,12 @@
 fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode)
 {
     fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
-    if (!parent) return -1;
-    if (!can_exec(parent, p)) return -1;
+    if (!parent) {
+        return -1;
+    }
+    if (!can_exec(parent, p)) {
+        return -1;
+    }
 
     fsnode_t *node = get_node(parent, basename(full_path));
     if ((mode & OF_APPEND || mode & OF_WRITE) && !can_write(node, p)) return -1;
@@ -111,9 +117,8 @@ int vfs_mkfile(pid_t p, const char *full_path, fsn_perm_t perms)
     fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
     if (!parent) return -1;
     if (!can_write(parent, p)) return -1;
-    // TODO: Retrieve uid and gid based on pid, to pass to newfile
     return parent->mountpoint->fs->newfile(
-        parent, basename(full_path), perms, 0, 0);
+        parent, basename(full_path), perms, procs[p].uid, procs[p].gid);
 }
 
 int vfs_mkdir(pid_t p, const char *full_path, fsn_perm_t perms)

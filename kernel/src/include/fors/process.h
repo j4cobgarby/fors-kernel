@@ -8,6 +8,8 @@
 #include "arch/x64/cpu.h"
 #endif
 
+#include "fors/types.h"
+
 #define PROC_NAME_LENGTH 32
 #define MAX_PROCS        128
 
@@ -21,7 +23,9 @@ typedef enum proc_status_e {
 typedef struct process_t {
     bool present; // Present in proc array?
 
-    long tid;                    // Unique ID
+    long tid; // Unique ID
+    gid_t gid;
+    uid_t uid;
     char name[PROC_NAME_LENGTH]; // Not necessarily unique name string
     char *cwd;                   // Current working directory
 

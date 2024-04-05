@@ -107,7 +107,7 @@ int tfs_node_from_id(long id, fsnode_t *node)
     node->internal_id = id;
     node->perms = FP_ROTH | FP_RUSR | FP_RGRP | FP_WUSR;
 
-    if (id == ID_TESTDIR1 || id == ID_TESTDIR2) {
+    if (id == ID_ROOT_DIR || id == ID_TESTDIR1 || id == ID_TESTDIR2) {
         node->perms |= FP_XOTH | FP_XUSR | FP_XGRP;
         node->type = DIRECTORY;
     } else {
