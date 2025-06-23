@@ -51,8 +51,6 @@ long long __sys_open(const char *path, of_mode_t mode)
     fd_t fd = vfs_open(current_proc, full_path, mode);
     kfree(full_path);
 
-    printk("(__sys_open) Opened file to global fd=%d, pfd=%d\n", fd, pfd);
-
     if (fd < 0) return -1;
 
     procs[current_proc].fdmap[pfd] = fd;

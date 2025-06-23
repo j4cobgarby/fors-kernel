@@ -127,8 +127,8 @@ int tfs_node_from_id(long id, fsnode_t *node)
 int tfs_read(openfile_t *file, size_t nbytes, char *kbuffer)
 {
     static const char msg[]
-        = "Hello, world!\nThis is my test string, which is inside all of the "
-          "files in a testfs filesystem!\nWow!!!";
+        = "Hello, world! This is my test string, which is inside all of the "
+          "files in a testfs filesystem! Wow!!!";
 
     if (file->cursor >= (long)sizeof(msg)) return -1;
 

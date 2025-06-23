@@ -31,8 +31,6 @@ void task1(void *)
     __asm__ volatile("int $0xf0" : : "a"(100), "S"("File contents:\n"));
     __asm__ volatile("int $0xf0" : : "a"(100), "S"(buff));
 
-    printk("Hello!");
-
     for (;;) { }
 }
 
