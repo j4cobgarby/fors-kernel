@@ -1,4 +1,5 @@
 #include "forslib/string.h"
+#include "fors/printk.h"
 #include "forslib/maths.h"
 
 void *memccpy(void *dest, const void *src, int c, size_t n)
@@ -65,7 +66,7 @@ char *stpcpy(char *dest, const char *src)
 char *stpncpy(char *dest, const char *src, size_t n)
 {
     size_t i;
-    for (i = 0; *src && i < n; src++, dest++) *dest = *src;
+    for (i = 0; *src && i < n; i++, src++, dest++) *dest = *src;
     *dest = '\0';
     return dest;
 }
