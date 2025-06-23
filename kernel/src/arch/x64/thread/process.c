@@ -100,6 +100,10 @@ long create_process(
         th->status = PROC_READY;
         th->cwd = (char *)default_cwd;
         strncpy(th->name, name, PROC_NAME_LENGTH);
+        
+        for (int i = 0; i < FDS_PER_PROC; i++) {
+            th->fdmap[i] = -1;
+        }
 
         if (user) {
             th->ctx.cs = USER_CS;

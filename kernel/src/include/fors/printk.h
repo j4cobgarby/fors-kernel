@@ -3,7 +3,7 @@
 
 #include <stdarg.h>
 
-#define PRINTK_HIGHLIGHT_FORMATS
+// #define PRINTK_HIGHLIGHT_FORMATS
 
 #define TRACE()                                                                \
     printk("*** TRACE() at %s:%d [%s]\n", __FILE__, __LINE__,                  \

@@ -11,7 +11,9 @@ typedef long pid_t;
 typedef long timestamp_t;
 
 typedef long fd_t; /* Global file descriptor */
-/* typedef long pfd_t; // Process-local fd */
+typedef long pfd_t; // Process-local fd
+
+#define PFD_VALID(pfd) ((pfd) < FDS_PER_PROC && (pfd) >= 0)
 
 typedef enum fsn_type_t {
     EMPTY,

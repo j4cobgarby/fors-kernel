@@ -11,7 +11,8 @@
 #include "fors/types.h"
 
 #define PROC_NAME_LENGTH 32
-#define MAX_PROCS        128
+#define MAX_PROCS        32
+#define FDS_PER_PROC     32
 
 typedef enum proc_status_e {
     PROC_RUNNING,
@@ -30,6 +31,8 @@ typedef struct process_t {
     char *cwd;                   // Current working directory
 
     proc_status status;
+
+    fd_t fdmap[FDS_PER_PROC];
 
 #ifdef __ARCH_x64__
     register_ctx_x64 ctx;

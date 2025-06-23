@@ -137,7 +137,8 @@ fsnode_t *find_parent(fsnode_t *root, const char *path);
 fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p);
 fsnode_t *get_node_byid(mount_t *root, long internal_id);
 
-/* High(er) level vfs functionality, maps closely to the actual syscalls */
+/* High(er) level vfs functionality, maps closely to the actual syscalls,
+but using global fds */
 int vfs_close(fd_t fd);
 int vfs_seek(fd_t fd, long offset, seek_anchor_t anchor);
 int vfs_read(fd_t fd, long nbytes, char *kbuffer);

@@ -21,13 +21,17 @@ volatile struct limine_framebuffer_request framebuf_req = {
 
 void task1(void *)
 {
-    // const char *test_msg = "Initialising system!\n";
+    char buff[128];
     int ret = -1;
     __asm__ volatile("int $0xf0" : "=a"(ret) : "a"(0), "S"("test.txt"), "b"(2));
 
-    if (ret >= 0) {
-        __asm__ volatile("int $0xf0" : : "a"(1), "S"("ret was set correctly!"));
-    }
+    int nread = -1;
+    __asm__ volatile("int $0xf0" : "=a"(nread) : "a"(2), "S"(buff), "b"(ret), "c"(128));
+
+    __asm__ volatile("int $0xf0" : : "a"(100), "S"("File contents:\n"));
+    __asm__ volatile("int $0xf0" : : "a"(100), "S"(buff));
+
+    printk("Hello!");
 
     for (;;) { }
 }
