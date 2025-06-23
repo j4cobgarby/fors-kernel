@@ -197,6 +197,9 @@ fsnode_t *find_parent_checkperm(fsnode_t *root, const char *path, pid_t p)
             parent = get_node_with_len(parent, path, next_delim - path);
             if (!parent) return NULL; /* Couldn't find intermediate directory */
         }
+        if (parent->type != DIRECTORY) {
+            return NULL;
+        }
         if (next_delim == last_delim) {
             break;
         }

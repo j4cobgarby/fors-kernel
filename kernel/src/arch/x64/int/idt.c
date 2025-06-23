@@ -103,7 +103,8 @@ void idt_attach_handler(int vector, union segment_selector seg,
 
 void *interrupt_dispatch(register_ctx_x64 *ctx)
 {
-    int sc, sysret;
+    int sc;
+    long long sysret;
     long proc_save;
     switch (ctx->vector) {
     case INT_PF:
@@ -158,10 +159,13 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
 
         break;
 
-    case 0xf0:
-        sysret = syscall_dispatch(ctx->rax, ctx->rsi, ctx->rbx, ctx->rcx);
-        // ctx->rax = sysret;
-        printk(") (Task %d dbg) %s", current_proc, (const char *)ctx->rsi);
+    case SYSCALL_VECTOR:
+        if (ctx->rax == 100) {
+            printk("(Task %d dbg, RAX=%d) %s", current_proc, ctx->rax, (const char *)ctx->rsi);
+        } else {
+            sysret = syscall_dispatch(ctx->rax, ctx->rsi, ctx->rbx, ctx->rcx);
+            ctx->rax = sysret;
+        }
         break;
     default:
         printk("Unhandled interrupt <%#x>\n", ctx->vector);
