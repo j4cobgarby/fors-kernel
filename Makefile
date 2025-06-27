@@ -91,6 +91,9 @@ $(BUILD)/$(SRC)/%.o: $(SRC)/%.asm
 	@echo -e $(CACC)[ASM] $(COK)$(notdir $<)$(COFF) .. $(dir $<)
 	@nasm $(NASMFLAGS) $< -o $@
 
+disk.img:
+	qemu-img create -f raw disk.img 2m
+
 .PHONE: clean
 clean:
 	rm -rf $(BUILD) $(TARGET_ISO)
@@ -98,17 +101,17 @@ clean:
 ## Emulation stuff
 
 .PHONY: bochs
-bochs:
-	bochs -q "com1: enabled=1, mode=file, dev=$(shell tty)"
+bochs: disk.img
+	bochs -debugger -q "com1: enabled=1, mode=file, dev=$(shell tty)"
 
 .PHONY: run
-run: $(TARGET_ISO)
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $< -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
+run: $(TARGET_ISO) disk.img
+	qemu-system-x86_64 -m 2G -cdrom $< -hda disk.img -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
 -d mmu,int -D qemulog.txt -no-reboot -no-shutdown
 
 .PHONY: debug
-debug: $(TARGET_ISO)
-	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $< -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
+debug: $(TARGET_ISO) disk.img
+	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $< -hda disk.img -boot d -serial stdio -display $(QEMU_DISPLAY_TYPE) \
 -d mmu,int -D qemulog.txt -no-reboot -no-shutdown
 
 .PHONY: gdb
