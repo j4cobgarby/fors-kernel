@@ -5,12 +5,10 @@
 
 // #define PRINTK_HIGHLIGHT_FORMATS
 
-#define TRACE()                                                                \
-    printk("*** TRACE() at %s:%d [%s]\n", __FILE__, __LINE__,                  \
-        __PRETTY_FUNCTION__)
-#define TRACE_MSG(msg)                                                         \
-    printk("*** " msg " at %s:%d [%s]\n", __FILE__, __LINE__,                  \
-        __PRETTY_FUNCTION__)
+#define TRACE()                                                                          \
+    printk("*** TRACE() at %s:%d [%s]\n", __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define TRACE_MSG(msg)                                                                   \
+    printk("*** " msg " at %s:%d [%s]\n", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 #define ERROR(msg) TRACE_MSG("ERROR! ")
 
@@ -20,7 +18,6 @@ void kputc(const char);
 
 // Generic
 
-__attribute__((no_caller_saved_registers)) void printk(
-    const char *restrict fmt, ...);
+__attribute__((no_caller_saved_registers)) void printk(const char *restrict fmt, ...);
 
 #endif /* __INCLUDE_FORS_PRINTK_H__ */

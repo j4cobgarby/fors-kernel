@@ -58,8 +58,8 @@ int bc_get(store_id id, size_t addr, char **buf)
             if (victim->bc_first) {
                 // This store has a cached block, let's uncache it and use
                 // it for our new block.
-                if (!victim->type->wr(&victim->dev, victim->bc_first->addr,
-                        victim->bc_first->data)) {
+                if (!victim->type->wr(
+                        &victim->dev, victim->bc_first->addr, victim->bc_first->data)) {
                     printk("[store.c] Could not save victim to disk; looking "
                            "for another.\n");
                     continue;

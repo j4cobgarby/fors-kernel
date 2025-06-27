@@ -102,9 +102,9 @@ buddy_block *merge(buddy_allocator *alloc, buddy_block *bl)
 
     if (bl->order == alloc->max_order) return NULL;
 
-    left_buddy = (buddy_block *)((size_t)bl
-        & ~(1 << bl->order)); // Clear bit that separates the two buddies from
-                              // each other
+    left_buddy
+        = (buddy_block *)((size_t)bl & ~(1 << bl->order)); // Clear bit that separates the
+                                                           // two buddies from each other
 
     if (left_buddy->order != get_buddy(alloc, left_buddy)->order) return NULL;
 

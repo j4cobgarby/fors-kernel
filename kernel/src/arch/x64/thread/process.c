@@ -22,8 +22,7 @@ pml4_entry_t *new_blank_user_pml4()
         if (ent->type != LIMINE_MEMMAP_RESERVED) {
             for (size_t off = 0; off < ent->length; off += ARCH_PAGE_SIZE) {
                 if (map_page_4k(new_pml4, ent->base + off,
-                        hhdm_request.response->offset + off,
-                        PSE_PRESENT | PSE_WRITABLE)
+                        hhdm_request.response->offset + off, PSE_PRESENT | PSE_WRITABLE)
                     < 0) {
                     KPANIC("Failed mapping.\n");
                 }
@@ -42,26 +41,24 @@ pml4_entry_t *new_blank_user_pml4()
      * shouldn't be strictly necessary if instead we "properly" set the starts
      * and ends to actual page boundaries. */
 
-    for (size_t off = FORS_CODE_OFFSET;
-        off < FORS_CODE_END_OFFSET + ARCH_PAGE_SIZE; off += ARCH_PAGE_SIZE) {
-        if (map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT)
-            < 0) {
+    for (size_t off = FORS_CODE_OFFSET; off < FORS_CODE_END_OFFSET + ARCH_PAGE_SIZE;
+        off += ARCH_PAGE_SIZE) {
+        if (map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT) < 0) {
             KPANIC("Failed mapping.\n");
         }
     }
 
     for (size_t off = FORS_RO_OFFSET; off < FORS_RO_END_OFFSET + ARCH_PAGE_SIZE;
         off += ARCH_PAGE_SIZE) {
-        if (map_page_4k(
-                new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT)) {
+        if (map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT)) {
             KPANIC("Failed mapping.\n");
         }
     }
 
     for (size_t off = FORS_RW_OFFSET; off < FORS_RW_END_OFFSET + ARCH_PAGE_SIZE;
         off += ARCH_PAGE_SIZE) {
-        if (map_page_4k(new_pml4, fors_phys + off, fors_load + off,
-                PSE_PRESENT | PSE_WRITABLE)) {
+        if (map_page_4k(
+                new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT | PSE_WRITABLE)) {
             KPANIC("Failed mapping.\n");
         }
     }
@@ -83,8 +80,7 @@ pml4_entry_t *new_blank_user_pml4()
     return new_pml4;
 }
 
-long create_process(
-    char *name, void (*entry)(void *), void *arg, void *stack, bool user)
+long create_process(char *name, void (*entry)(void *), void *arg, void *stack, bool user)
 {
     static const char *default_cwd = "/";
     process *th;

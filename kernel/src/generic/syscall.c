@@ -1,8 +1,7 @@
 #include "fors/syscall.h"
 #include "fors/printk.h"
 
-long long syscall_dispatch(
-    long vec, long long p_1, long long p_2, long long p_3)
+long long syscall_dispatch(long vec, long long p_1, long long p_2, long long p_3)
 {
     /* On x86:
      * vec = rax

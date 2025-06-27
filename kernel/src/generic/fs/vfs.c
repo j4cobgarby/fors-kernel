@@ -16,20 +16,17 @@ int vfs_init()
 
 int can_read(fsnode_t *dir, pid_t p)
 {
-    return p == -1 || dir->perms & FP_ROTH
-        || (dir->perms & FP_RUSR && dir->user == p);
+    return p == -1 || dir->perms & FP_ROTH || (dir->perms & FP_RUSR && dir->user == p);
 }
 
 int can_write(fsnode_t *dir, pid_t p)
 {
-    return p == -1 || dir->perms & FP_WOTH
-        || (dir->perms & FP_WUSR && dir->user == p);
+    return p == -1 || dir->perms & FP_WOTH || (dir->perms & FP_WUSR && dir->user == p);
 }
 
 int can_exec(fsnode_t *dir, pid_t p)
 {
-    return p == -1 || dir->perms & FP_XOTH
-        || (dir->perms & FP_XUSR && dir->user == p);
+    return p == -1 || dir->perms & FP_XOTH || (dir->perms & FP_XUSR && dir->user == p);
 }
 
 int find_free_link()
@@ -156,8 +153,7 @@ fsnode_t *get_node_byid(mount_t *mount, long internal_id)
     for (int i = 0; i < NUM_FSNODES; i++) {
         fn = &fsnodes[i];
         if (fn->type == EMPTY) continue;
-        if (fn->internal_id == internal_id && fn->mountpoint == mount)
-            return fn;
+        if (fn->internal_id == internal_id && fn->mountpoint == mount) return fn;
     }
 
     long new_node_index = find_free_node();

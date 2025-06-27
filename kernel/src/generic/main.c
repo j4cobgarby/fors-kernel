@@ -28,9 +28,7 @@ void task1(void *)
     __asm__ volatile("int $0xf0" : "=a"(ret) : "a"(0), "S"("test.txt"), "b"(2));
 
     int nread = -1;
-    __asm__ volatile("int $0xf0"
-        : "=a"(nread)
-        : "a"(2), "S"(buff), "b"(ret), "c"(128));
+    __asm__ volatile("int $0xf0" : "=a"(nread) : "a"(2), "S"(buff), "b"(ret), "c"(128));
 
     __asm__ volatile("int $0xf0" : : "a"(100), "S"("File contents:\n"));
     __asm__ volatile("int $0xf0" : : "a"(100), "S"(buff));
@@ -67,8 +65,7 @@ void _start(void)
     void *tmp = tmpmap(user_code_phys);
     if (tmp) memcpy(tmp, &task1, 4096);
 
-    int tid = create_process(
-        "initial", user_start, NULL, user_stack_top_page + 4095, 1);
+    int tid = create_process("initial", user_start, NULL, user_stack_top_page + 4095, 1);
 
     if (vmap(tid, user_code_phys, (void *)0x200000000, 4096,
             VMAP_4K | VMAP_EXEC | VMAP_USER | VMAP_WRIT)

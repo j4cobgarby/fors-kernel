@@ -32,8 +32,7 @@ extern buddy_allocator kheap_alloc;
 #define DATA(blkptr)    ((void *)(blkptr[1]))
 #define HEADER(dataptr) ((buddy_block *)((void *)dataptr - sizeof(buddy_block)))
 
-int buddy_init(
-    size_t size, void *ptr, size_t min_order, buddy_allocator *alloc);
+int buddy_init(size_t size, void *ptr, size_t min_order, buddy_allocator *alloc);
 
 void *balloc(size_t size, buddy_allocator *alloc);
 void bfree(void *ptr, buddy_allocator *alloc);

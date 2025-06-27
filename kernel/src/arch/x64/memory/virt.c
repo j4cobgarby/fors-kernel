@@ -42,8 +42,7 @@ void zero_paging_table(uint64_t table[512])
 
 void x64_init_virtual_memory()
 {
-    kernel_pml4_table
-        = (pml4_entry_t *)(hhdm_request.response->offset + get_cr3());
+    kernel_pml4_table = (pml4_entry_t *)(hhdm_request.response->offset + get_cr3());
     hhdm_offset = hhdm_request.response->offset;
 
     printk(") Direct map starts at virt %p\n", hhdm_offset);
@@ -51,8 +50,8 @@ void x64_init_virtual_memory()
     // kernel_pml4_table, get_cr3());
 }
 
-int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt,
-    unsigned int flags)
+int map_page_4k(
+    pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt, unsigned int flags)
 {
     unsigned int pml4_index = EXTRACT_PML4_INDEX(virt);
     unsigned int pml3_index = EXTRACT_PML3_INDEX(virt);
@@ -105,9 +104,8 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt,
     *pml3_entry |= flags | PSE_PRESENT;
 
     pml2_entry_t *pml2_table = (pml2_entry_t *)PSE_GET_PTR(*pml3_entry);
-    pml2_entry_t *pml2_entry
-        = &(pml2_table[pml2_index]); // An entry in the pdt which points to one
-                                     // page table
+    pml2_entry_t *pml2_entry = &(pml2_table[pml2_index]); // An entry in the pdt which
+                                                          // points to one page table
 
     if (*pml2_entry & PSE_PAGESIZE) {
         return EGENERIC;
@@ -129,9 +127,8 @@ int map_page_4k(pml4_entry_t *pml4_table, uintptr_t phys, uintptr_t virt,
     *pml2_entry |= flags | PSE_PRESENT;
 
     pml1_entry_t *pml1_table = (pml1_entry_t *)PSE_GET_PTR(*pml2_entry);
-    pml1_entry_t *pml1_entry
-        = &(pml1_table[pml1_index]); // An entry in the page table,
-                                     // which points to one 4K page
+    pml1_entry_t *pml1_entry = &(pml1_table[pml1_index]); // An entry in the page table,
+                                                          // which points to one 4K page
 
     // Here we don't allocate any memory for the 4K page, because the physical
     // address is already specified in 'phys'. The caller should allocate a
@@ -250,8 +247,8 @@ int vmap(int pid, void *pa, void *va, int size, int flags)
     }
 
     if (flags & VMAP_4K) {
-        return map_page_4k(root_table, (uintptr_t)pa, (uintptr_t)va,
-            mapping_flags | PSE_PRESENT);
+        return map_page_4k(
+            root_table, (uintptr_t)pa, (uintptr_t)va, mapping_flags | PSE_PRESENT);
     } else {
         return EIMPL;
     }

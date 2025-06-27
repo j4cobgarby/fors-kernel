@@ -14,8 +14,7 @@ void pffree_consecutive(void *pf_first, unsigned int n);
 
 /* Virtual memory functions */
 
-void *tmpmap(void
-        *pa); // Map a frame to the kernel's scratch page, for temporary access.
+void *tmpmap(void *pa); // Map a frame to the kernel's scratch page, for temporary access.
 
 int vmap(int pid, void *pa, void *va, int size, int flags);
 int vunmap(int pid, void *va, int size);

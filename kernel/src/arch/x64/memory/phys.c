@@ -97,8 +97,8 @@ void x64_init_physical_memory()
         }
     }
 
-    printk(") Page frame pool initialised with %d free %d-byte frames.\n",
-        free_frames, ARCH_PAGE_SIZE);
+    printk(") Page frame pool initialised with %d free %d-byte frames.\n", free_frames,
+        ARCH_PAGE_SIZE);
 }
 
 void *pfalloc_one()

@@ -8,8 +8,7 @@
 #define SYSCALL_VECTOR 0xf0
 
 // __attribute__((no_caller_saved_registers))
-long long syscall_dispatch(
-    long vec, long long p_1, long long p_2, long long p_3);
+long long syscall_dispatch(long vec, long long p_1, long long p_2, long long p_3);
 
 long long __sys_open(const char *path, of_mode_t mode);
 long long __sys_close(pfd_t pfd);

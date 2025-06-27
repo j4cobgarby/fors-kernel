@@ -42,12 +42,10 @@ void memory_initialise()
     // KHEAP_MAXSIZE.
     uint64_t kheap_start = (uint64_t)&_FORS_HEAP_START;
 
-    printk(
-        ") Kheap starts at %p (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
+    printk(") Kheap starts at %p (%d long/aligned)\n", kheap_start, KHEAP_MAXSIZE);
 
     /* Map in kernel heap */
-    if (vmap(-1, pfalloc_one(), (void *)kheap_start, ARCH_PAGE_SIZE,
-            VMAP_4K | VMAP_WRIT)
+    if (vmap(-1, pfalloc_one(), (void *)kheap_start, ARCH_PAGE_SIZE, VMAP_4K | VMAP_WRIT)
         < 0) {
         KPANIC("Failed to map in kernel heap!");
     }

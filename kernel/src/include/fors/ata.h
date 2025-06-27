@@ -75,8 +75,7 @@ int ata_read_sector(ata_device_t *dev, size_t lba, char *buffer);
 int ata_write_sector(ata_device_t *dev, size_t lba, const char *buffer);
 
 // Read multiple sectors
-int ata_read_sectors(
-    ata_device_t *dev, size_t start_lba, size_t count, char *buffer);
+int ata_read_sectors(ata_device_t *dev, size_t start_lba, size_t count, char *buffer);
 
 // Write multiple sectors
 int ata_write_sectors(

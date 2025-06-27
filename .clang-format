@@ -4,7 +4,7 @@ AlignConsecutiveMacros: 'true'
 AlignTrailingComments: 'true'
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: 'true'
-ColumnLimit: '80'
+ColumnLimit: '90'
 ContinuationIndentWidth: '4'
 IndentCaseLabels: 'false'
 IndentWidth: '4'

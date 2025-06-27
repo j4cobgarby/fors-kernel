@@ -101,10 +101,10 @@ typedef struct filesystem_type_t {
     int (*f_read)(openfile_t *file, size_t nbytes, char *kbuffer);
     int (*f_write)(openfile_t *file, size_t nbytes, const char *kbuffer);
 
-    int (*newfile)(fsnode_t *parent, const char *name, fsn_perm_t perms,
-        uid_t user, gid_t group);
-    int (*newdir)(fsnode_t *parent, const char *name, fsn_perm_t perms,
-        uid_t user, gid_t group);
+    int (*newfile)(
+        fsnode_t *parent, const char *name, fsn_perm_t perms, uid_t user, gid_t group);
+    int (*newdir)(
+        fsnode_t *parent, const char *name, fsn_perm_t perms, uid_t user, gid_t group);
     int (*delnode)(fsnode_t *parent, const char *name);
 } filesystem_type_t;
 

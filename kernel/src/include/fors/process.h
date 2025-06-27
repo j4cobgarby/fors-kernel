@@ -45,8 +45,7 @@ extern long current_proc;
 // Finds a free TID, -1 if none available.
 long find_free_tid();
 
-long create_process(
-    char *name, void (*entry)(void *), void *arg, void *stack, bool user);
+long create_process(char *name, void (*entry)(void *), void *arg, void *stack, bool user);
 
 int enqueue_proc(long tid);
 long dequeue_proc();

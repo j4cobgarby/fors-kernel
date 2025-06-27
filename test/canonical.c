@@ -83,16 +83,16 @@ int try_make_canonical(char *path, size_t *len_res)
     return is_canonical(path);
 }
 
-#define TEST_CANONICAL(path, expected)                                         \
-    {                                                                          \
-        bool c = is_canonical(path);                                           \
-        if (c == expected)                                                     \
-            printf("[PASS]\t");                                                \
-        else {                                                                 \
-            failures++;                                                        \
-            printf("[FAIL]\t");                                                \
-        }                                                                      \
-        printf("(%d) \"%s\"\n", c, path);                                      \
+#define TEST_CANONICAL(path, expected)                                                   \
+    {                                                                                    \
+        bool c = is_canonical(path);                                                     \
+        if (c == expected)                                                               \
+            printf("[PASS]\t");                                                          \
+        else {                                                                           \
+            failures++;                                                                  \
+            printf("[FAIL]\t");                                                          \
+        }                                                                                \
+        printf("(%d) \"%s\"\n", c, path);                                                \
     }
 
 int main()

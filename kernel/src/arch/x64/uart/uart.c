@@ -24,10 +24,8 @@ int x64_uart_init()
     for (int i = 0; i < COM_PORT_COUNT; i++) {
         if (com_port_setup(&com_ports[i], 3) == 0) {
             if (!uart_port) uart_port = &(com_ports[i]);
-            com_sends(
-                com_ports[i], ") Kernel build " __DATE__ " " __TIME__ "\n");
-            com_sends(com_ports[i],
-                ") You have been detected as a working UART port.\n");
+            com_sends(com_ports[i], ") Kernel build " __DATE__ " " __TIME__ "\n");
+            com_sends(com_ports[i], ") You have been detected as a working UART port.\n");
         }
     }
 
@@ -47,8 +45,7 @@ int com_port_setup(struct uart_com_port *port, uint16_t divisor)
 
     // And then split the 16 bit divisor value across the two 8 bit fields.
     outb(port->io_port_base + COM_PORT_OFFSET_BAUD_DIVISOR_LOW, divisor & 0xff);
-    outb(port->io_port_base + COM_PORT_OFFSET_BAUD_DIVISOR_HIGH,
-        (divisor >> 8) & 0xff);
+    outb(port->io_port_base + COM_PORT_OFFSET_BAUD_DIVISOR_HIGH, (divisor >> 8) & 0xff);
 
     // Now we use the LINE_CTRL register to set the parameters of the serial.
     outb(port->io_port_base + COM_PORT_OFFSET_LINE_CTRL,

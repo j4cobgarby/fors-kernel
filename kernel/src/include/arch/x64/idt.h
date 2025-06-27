@@ -44,7 +44,7 @@
  */
 
 typedef uint16_t idt_attributes_t;
-#define INIT_IDT_ATTRIBUTES(dpl, type, ist)                                    \
+#define INIT_IDT_ATTRIBUTES(dpl, type, ist)                                              \
     (1 << 15 | (ist & 0x07) | ((type & 0xf) << 8) | ((dpl & 0x03) << 13))
 #define IDT_ATTRIBUTES_IST(attributes)     ((attributes) & 0x07)
 #define IDT_ATTRIBUTES_TYPE(attributes)    ((attributes >> 8) & 0x0f)
@@ -65,13 +65,13 @@ struct idt_entry {
     uint32_t reserved; // Reserved according to intel's specs. Set to 0.
 } __attribute__((packed));
 
-#define INIT_IDT_ENTRY(seg, attr, offset64)                                    \
-    ((struct idt_entry) {                                                      \
-        .segment = (seg),                                                      \
-        .attributes = (attr),                                                  \
-        .offset_a = (offset64 & 0xffff),                                       \
-        .offset_b = ((offset64 >> 16) & 0xffff),                               \
-        .offset_c = ((offset64 >> 32) & 0xffffffff),                           \
+#define INIT_IDT_ENTRY(seg, attr, offset64)                                              \
+    ((struct idt_entry) {                                                                \
+        .segment = (seg),                                                                \
+        .attributes = (attr),                                                            \
+        .offset_a = (offset64 & 0xffff),                                                 \
+        .offset_b = ((offset64 >> 16) & 0xffff),                                         \
+        .offset_c = ((offset64 >> 32) & 0xffffffff),                                     \
     })
 
 /* The IDT table is a 4096 byte (1 4KB page) long table of 256 IDT entries.
@@ -96,10 +96,10 @@ struct idt_descriptor {
     void *offset;      // The address of the IDT. Paging applies!
 } __attribute__((packed));
 
-#define INIT_IDT_DESCRIPTOR(idt_offset, n_entries)                             \
-    ((struct idt_descriptor) {                                                 \
-        .offset = (idt_offset),                                                \
-        .idt_size = ((n_entries) * sizeof(struct idt_entry)) - 1,              \
+#define INIT_IDT_DESCRIPTOR(idt_offset, n_entries)                                       \
+    ((struct idt_descriptor) {                                                           \
+        .offset = (idt_offset),                                                          \
+        .idt_size = ((n_entries) * sizeof(struct idt_entry)) - 1,                        \
     })
 
 struct isr_frame {
@@ -113,7 +113,7 @@ struct isr_frame {
 void idt_init();
 void idt_load(struct idt_entry *table, int n_entries);
 
-void idt_attach_handler(int vector, union segment_selector seg,
-    idt_attributes_t attr, void *handler);
+void idt_attach_handler(
+    int vector, union segment_selector seg, idt_attributes_t attr, void *handler);
 
 #endif /* __INCLUDE_X64_IDT_H__ */

@@ -56,8 +56,7 @@ void idt_init()
     isr_seg.element.rpl = 0;
     isr_seg.element.entry = 1;
 
-    idt_attributes_t isr_attr
-        = INIT_IDT_ATTRIBUTES(0, IDT_ATTRIBUTES_TYPE_TRAP, 0);
+    idt_attributes_t isr_attr = INIT_IDT_ATTRIBUTES(0, IDT_ATTRIBUTES_TYPE_TRAP, 0);
 
     idt_attach_handler(0x00, isr_seg, isr_attr, &__isr_0x00);
     idt_attach_handler(0x01, isr_seg, isr_attr, &__isr_0x01);
@@ -75,8 +74,8 @@ void idt_init()
     idt_attach_handler(0x21, isr_seg, isr_attr, &__isr_0x21); // Keyboard
     idt_attach_handler(0x2e, isr_seg, isr_attr, &__isr_0x2e);
 
-    idt_attach_handler(0xf0, isr_seg,
-        INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
+    idt_attach_handler(
+        0xf0, isr_seg, INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
 
     idt_attach_handler(0x08, isr_seg, isr_attr, &__isr_0x08);
     idt_attach_handler(0x0a, isr_seg, isr_attr, &__isr_0x0a);
@@ -100,8 +99,8 @@ void idt_load(struct idt_entry *table, int n_entries)
     __asm__("lidt %0" : : "m"(idt_desc));
 }
 
-void idt_attach_handler(int vector, union segment_selector seg,
-    idt_attributes_t attr, void *handler)
+void idt_attach_handler(
+    int vector, union segment_selector seg, idt_attributes_t attr, void *handler)
 {
     idt_table[vector] = INIT_IDT_ENTRY(seg, attr, (uint64_t)handler);
 }
@@ -123,8 +122,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
            trying to access the kernel heap, or something like that.
         */
     case INT_GP:
-        KPANIC_VA("General Protection Fault (%d) RIP='%p'", ctx->error_code,
-            ctx->rip);
+        KPANIC_VA("General Protection Fault (%d) RIP='%p'", ctx->error_code, ctx->rip);
     case INT_DE:
         KPANIC("Division by zero encounters!");
 

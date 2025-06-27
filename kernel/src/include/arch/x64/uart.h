@@ -48,7 +48,7 @@
 // stop may be one of STOP_BITS_x, and will set to use x stop bits after each
 // transmission. parity may be one of PARITY_x, and will set the parity scheme
 // to use.
-#define SET_LINE_CTRL(char_len, stop, parity)                                  \
+#define SET_LINE_CTRL(char_len, stop, parity)                                            \
     ((char_len - 5) & 0x3) | (stop << 2) | (parity << 3)
 
 #define COM_PORT_COUNT 8
@@ -62,9 +62,8 @@ struct uart_com_port {
 
 /*  Initialise a com_port struct. Does not set the com port up. Use the function
     com_port_setup for that */
-#define INIT_COM_PORT(base)                                                    \
-    ((struct uart_com_port) {                                                  \
-        .io_port_base = base, .status = COM_PORT_STATUS_BUSY })
+#define INIT_COM_PORT(base)                                                              \
+    ((struct uart_com_port) { .io_port_base = base, .status = COM_PORT_STATUS_BUSY })
 
 extern struct uart_com_port *uart_port;
 

@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-#define IOPB_SIZE                                                              \
-    130 // Fit all ports we want to control, at least, plus terminating 0xff
+#define IOPB_SIZE 130 // Fit all ports we want to control, at least, plus terminating 0xff
 
 typedef struct tss_t {
     uint32_t _0;
@@ -60,7 +59,7 @@ typedef struct register_ctx_x64 {
 #define RFLAGS_IF        (1 << 9) // Interrupt enable
 #define RFLAGS_IOPL(lvl) ((lvl & 0x3) << 12)
 
-#define REGDUMP(ctx)                                                           \
+#define REGDUMP(ctx)                                                                     \
     printk("\
 cr3\t%x\n\
 r15\t%x\n\
@@ -82,9 +81,9 @@ rip\t%x\n\
 cs\t%x\n\
 rflags\t%x\n\
 rsp\t%x\n\
-ss\t%x\n",                                                                     \
-        ctx->cr3, ctx->r15, ctx->r14, ctx->r13, ctx->r12, ctx->r11, ctx->r10,  \
-        ctx->r9, ctx->r8, ctx->rbp, ctx->rdi, ctx->rsi, ctx->rdx, ctx->rcx,    \
-        ctx->rbx, ctx->rax, ctx->rip, ctx->cs, ctx->rflags, ctx->rsp, ctx->ss)
+ss\t%x\n",                                                                               \
+        ctx->cr3, ctx->r15, ctx->r14, ctx->r13, ctx->r12, ctx->r11, ctx->r10, ctx->r9,   \
+        ctx->r8, ctx->rbp, ctx->rdi, ctx->rsi, ctx->rdx, ctx->rcx, ctx->rbx, ctx->rax,   \
+        ctx->rip, ctx->cs, ctx->rflags, ctx->rsp, ctx->ss)
 
 #endif /* __INCLUDE_X64_CPU_H__ */

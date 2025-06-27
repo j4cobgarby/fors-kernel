@@ -126,8 +126,7 @@ int vfs_mkdir(pid_t p, const char *full_path, fsn_perm_t perms)
     fsnode_t *parent = find_parent_checkperm(vfs_root, full_path, p);
     if (!parent) return -1;
     if (!can_write(parent, p)) return -1;
-    return parent->mountpoint->fs->newdir(
-        parent, basename(full_path), perms, 0, 0);
+    return parent->mountpoint->fs->newdir(parent, basename(full_path), perms, 0, 0);
 }
 
 int vfs_delnode(const char *full_path)

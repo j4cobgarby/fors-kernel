@@ -90,9 +90,8 @@ int ata_wait_drq(ata_device_t *dev)
 // Select drive and set up LBA addressing
 int ata_select_drive(ata_device_t *dev, size_t lba)
 {
-    uint8_t drive_select
-        = (dev->drive == 0 ? ATA_DRIVE_MASTER : ATA_DRIVE_SLAVE) | ATA_DRIVE_LBA
-        | ((lba >> 24) & 0x0F);
+    uint8_t drive_select = (dev->drive == 0 ? ATA_DRIVE_MASTER : ATA_DRIVE_SLAVE)
+        | ATA_DRIVE_LBA | ((lba >> 24) & 0x0F);
 
     outb(dev->base_port + 6, drive_select); // Drive/Head register
 
@@ -187,8 +186,7 @@ int ata_write_sector(ata_device_t *dev, size_t lba, const char *buffer)
 }
 
 // Read multiple sectors
-int ata_read_sectors(
-    ata_device_t *dev, size_t start_lba, size_t count, char *buffer)
+int ata_read_sectors(ata_device_t *dev, size_t start_lba, size_t count, char *buffer)
 {
     for (size_t i = 0; i < count; i++) {
         int ret = ata_read_sector(dev, start_lba + i, buffer + (i * 512));

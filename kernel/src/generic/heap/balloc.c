@@ -32,8 +32,7 @@ void *balloc(size_t size, buddy_allocator *alloc)
         /* If we can find an available block of the exact size desired (so, the
          * minimum block size that fits the required bytes), then we can
          * immediately return this. */
-        ret_block
-            = remove_block(alloc, alloc->order_lists[order - alloc->min_order]);
+        ret_block = remove_block(alloc, alloc->order_lists[order - alloc->min_order]);
         goto ret;
     } else {
         for (int n = order + 1; n <= alloc->max_order; n++) {
