@@ -49,7 +49,7 @@ typedef unsigned of_mode_t;
 typedef struct store_type_t {
     char name[8];
     size_t block_sz;
-    int (*init)(void *dev);
+    int (*init)(void *dev, const char *cfg);
     int (*rd)(void *dev, size_t addr, char *buf);
     int (*wr)(void *dev, size_t addr, const char *buf);
     size_t (*nblocks)(void *dev);

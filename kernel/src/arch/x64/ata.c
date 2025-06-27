@@ -1,6 +1,7 @@
 #include "fors/ata.h"
 #include "arch/x64/io.h"
 #include "arch/x64/pic.h"
+#include "fors/printk.h"
 
 static int st_rd(void *dev, size_t addr, char *buf) {
     return ATA_OK == ata_read_sector((ata_device_t *)dev, addr, buf);
@@ -14,10 +15,20 @@ static size_t st_nb(void *dev) {
     return ata_num_blocks((ata_device_t *)dev);
 }
 
+static int st_init(void *dev, const char *cfg) {
+    // int primary = va_arg(args, int);
+    // int master = va_arg(args, int);
+    int primary = cfg[0] == 'p';
+    int master = cfg[1] == 'm';
+    printk("Initialising device with primary=%d, master=%d\n", primary, master);
+    ata_init_device((ata_device_t *)dev, primary, master);
+    return 1;
+}
+
 store_type_t ata_store_type = {
-    .name = "ata.pio.",
+    .name = "atapio",
     .block_sz = 512,
-    .init = NULL,
+    .init = &st_init,
     .rd = &st_rd,
     .wr = &st_wr,
     .nblocks = &st_nb,

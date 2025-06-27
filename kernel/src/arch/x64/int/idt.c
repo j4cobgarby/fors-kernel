@@ -165,7 +165,6 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         break;
     case PIC_FIRST_VECTOR + PIC_IRQ_ATABUS_MASTER:
     case PIC_FIRST_VECTOR + PIC_IRQ_ATABUS_SLAVE:
-        printk("PIC IRQ #%d: ATA drive\n", ctx->vector - PIC_FIRST_VECTOR);
         pic_eoi(14);
         break;
     case SYSCALL_VECTOR:

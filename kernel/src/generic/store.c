@@ -9,7 +9,7 @@ store_t stores[MAX_STORES] = {0};
 
 storetype_id find_storetype(char name[8]) {
     for (storetype_id id = 0; id < MAX_STORETYPES; id++) {
-	if (memcmp(name, store_types[id].name, 8) == 0) return id;
+	if (strncmp(name, store_types[id].name, 8) == 0) return id;
     }
     return -1;
 }
@@ -68,20 +68,21 @@ int bc_get(store_id id, size_t addr, char **buf) {
 	return 0;
     } else {
 	// We can just make a new one
-	printk("kalloc 1\n");
 	blk = kalloc(sizeof(bc_entry_t));
 	if (!blk) {
 	    printk("[store.c] Failed to allocate memory for new bc entry.\n");
 	    return 0;
 	}
 
-	printk("kalloc 2, sz=%d\n", st->type->block_sz);
 	blk->data = kalloc(st->type->block_sz);
 	if (!blk->data) {
 	    printk("[store.c] Failed to allocate memory for new bc data buffer.\n");
 	    kfree(blk);
 	    return 0;
 	}
+
+	blk->next = st->bc_first;
+	st->bc_first = blk;
 
 	bc_cached_count++;
     }
@@ -100,7 +101,7 @@ int bc_put(store_id id, size_t addr) {
     for (bc_entry_t *bc = st->bc_first; bc; bc = bc->next) {
 	if (bc->addr == addr) {
 	    // It is checked out, so save it
-	    st->type->wr(&st->dev, addr, bc->data);
+	    return st->type->wr(&st->dev, addr, bc->data);
 	    
 	}
     }
@@ -108,4 +109,25 @@ int bc_put(store_id id, size_t addr) {
     // Return success if block was not found, because it just means there was
     // nothing to write back
     return 1;
+}
+
+store_id register_store(char storetype[8], const char *cfg) {
+    store_id id = 0;
+    for (; id < MAX_STORES && stores[id].type != NULL; id++);
+    if (id == MAX_STORES) return -1;
+    store_t *st = &stores[id];
+    
+    storetype_id stid = find_storetype("atapio");
+    if (stid < 0) return -1;
+    printk("Found storetype ID=%d\n", stid);
+
+    store_type_t *type = &store_types[stid];
+
+    st->type = type;
+    st->bc_first = NULL;
+    if (!type->init(&st->dev.ata_info, cfg)) {
+	return -1;
+    }
+
+    return id;
 }

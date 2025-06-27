@@ -40,32 +40,17 @@ void _start(void)
 {
     arch_initialise();
 
-    // char buff[512];
-    //
-    // ata_device_t atadev;
-    // ata_init_device(&atadev, true, true);
-    //
-    // int res = ata_read_sector(&atadev, 0, buff);
-    // if (res == ATA_OK) {
-    //     printk("Successfully read block: %s\n", buff);
-    // }
-    
-    /* Initialise storage */
     register_storetype(ata_store_type);
     
-    stores[0] = (store_t){
-	.type = &store_types[0],
-	.bc_first = NULL,
-    };
-
-    ata_init_device(&stores[0].dev.ata_info, true, true);
-
-    printk("Registered device\n");
+    store_id si = register_store("atapio", "pm");
 
     char *buf;
-    int ret = bc_get(0, 0, &buf);
-    printk("Read block into buffer, ret = %d, buf @ %x\n", ret, buf);
-    printk("Data: '%s'\n", buf);
+    int ret = bc_get(si, 0, &buf);
+    if (ret)
+	printk("Read from ATA: '%s'\n", buf);
+
+    strcpy(buf, "Overwritten!");
+    printk("Written: ret=%d\n", bc_put(si, 0));
 
     /* Initialise filesystem root */
     mount_t *testmnt = &mounts[0];

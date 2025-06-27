@@ -49,6 +49,7 @@ typedef struct bc_entry_t {
 
 storetype_id find_storetype(char name[8]);
 storetype_id register_storetype(store_type_t type);
+store_id register_store(char storetype[8], const char *cfg);
 
 int bc_get(store_id id, size_t addr, char **buf);
 int bc_put(store_id id, size_t addr);
