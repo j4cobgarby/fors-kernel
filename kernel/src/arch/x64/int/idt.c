@@ -17,7 +17,7 @@
 #include <stdint.h>
 
 struct idt_entry idt_table[IDT_N_ENTRIES];
-tss_t tss;
+tss_t tss __attribute__((aligned(0x1000)));
 
 // ISRs without CPU-pushed error codes
 extern void *__isr_0x00;
@@ -34,6 +34,7 @@ extern void *__isr_0x13;
 
 extern void *__isr_0x20;
 extern void *__isr_0x21; // Keyboard
+extern void *__isr_0x2e;
 
 extern void *__isr_0xf0; // 0xf0 syscall
 
@@ -72,6 +73,7 @@ void idt_init()
 
     idt_attach_handler(0x20, isr_seg, isr_attr, &__isr_0x20); // Timer
     idt_attach_handler(0x21, isr_seg, isr_attr, &__isr_0x21); // Keyboard
+    idt_attach_handler(0x2e, isr_seg, isr_attr, &__isr_0x2e);
 
     idt_attach_handler(0xf0, isr_seg,
         INIT_IDT_ATTRIBUTES(3, IDT_ATTRIBUTES_TYPE_TRAP, 0), &__isr_0xf0);
@@ -86,6 +88,9 @@ void idt_init()
 
     memset(&tss, 0, sizeof(tss_t));
     tss.rsp0 = (uint64_t)allocate_stack();
+    tss.io_bitmap_offset = offsetof(struct tss_t, iopb);
+    memset(tss.iopb, 0x00, IOPB_SIZE);
+    tss.iopb[IOPB_SIZE-1] = 0xff;
 }
 
 void idt_load(struct idt_entry *table, int n_entries)
@@ -118,11 +123,11 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
            trying to access the kernel heap, or something like that.
         */
     case INT_GP:
-        KPANIC_VA("General Protection Fault (%d)", ctx->error_code);
+        KPANIC_VA("General Protection Fault (%d) RIP='%p'", ctx->error_code, ctx->rip);
     case INT_DE:
         KPANIC("Division by zero encounters!");
 
-    case PIC_FIRST_VECTOR: // PIT timer
+    case PIC_FIRST_VECTOR + PIC_IRQ_PITTIMER: // PIT timer
         proc_save = current_proc;
 
         // Tick the timer, which may call some timer handle callbacks.
@@ -147,7 +152,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
 
         pic_eoi(0);
         break;
-    case PIC_FIRST_VECTOR + 1:
+    case PIC_FIRST_VECTOR + PIC_IRQ_KEYBOARD: // Keyboard stroke
         sc = inb(0x60);
 
         if (!(sc & 0x80)) {
@@ -158,10 +163,14 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         pic_eoi(1);
 
         break;
-
+    case PIC_FIRST_VECTOR + PIC_IRQ_ATABUS_MASTER:
+    case PIC_FIRST_VECTOR + PIC_IRQ_ATABUS_SLAVE:
+        printk("PIC IRQ #%d: ATA drive\n", ctx->vector - PIC_FIRST_VECTOR);
+        pic_eoi(14);
+        break;
     case SYSCALL_VECTOR:
         if (ctx->rax == 100) {
-            printk("(Task %d dbg, RAX=%d) %s", current_proc, ctx->rax, (const char *)ctx->rsi);
+            printk("(Task %d dbg) %s", current_proc, (const char *)ctx->rsi);
         } else {
             sysret = syscall_dispatch(ctx->rax, ctx->rsi, ctx->rbx, ctx->rcx);
             ctx->rax = sysret;

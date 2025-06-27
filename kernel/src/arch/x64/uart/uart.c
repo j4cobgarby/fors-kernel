@@ -24,12 +24,6 @@ int x64_uart_init()
     for (int i = 0; i < COM_PORT_COUNT; i++) {
         if (com_port_setup(&com_ports[i], 3) == 0) {
             if (!uart_port) uart_port = &(com_ports[i]);
-
-            com_sends(com_ports[i], "\n)()()()()()()()()()()()()()()()()()(\n");
-            com_sends(com_ports[i], ")                                  (\n");
-            com_sends(com_ports[i], ") Welcome back to the Fors kernel! (\n");
-            com_sends(com_ports[i], ")                                  (\n");
-            com_sends(com_ports[i], ")()()()()()()()()()()()()()()()()()(\n\n");
             com_sends(
                 com_ports[i], ") Kernel build " __DATE__ " " __TIME__ "\n");
             com_sends(com_ports[i],

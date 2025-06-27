@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define IOPB_SIZE 130 // Fit all ports we want to control, at least, plus terminating 0xff
+
 typedef struct tss_t {
     uint32_t _0;
     uint64_t rsp0;
@@ -19,6 +21,7 @@ typedef struct tss_t {
     uint64_t _2;
     uint16_t _3;
     uint16_t io_bitmap_offset;
+    uint8_t iopb[IOPB_SIZE];
 } __attribute__((packed)) tss_t;
 
 extern tss_t tss;

@@ -140,5 +140,5 @@ void arch_start_running_procs()
 {
     // Invoke the scheduler every 10 ticks
     add_timer_handle(&schedule_set_current_proc, 1);
-    pic_unblock_irq(0); // Start timer.
+    pic_unblock_irq(PIC_IRQ_PITTIMER); // Start timer.
 }

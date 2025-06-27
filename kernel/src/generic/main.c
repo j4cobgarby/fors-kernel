@@ -6,6 +6,8 @@
 #include "fors/filesystem.h"
 #include "fors/fs/test.h"
 #include "fors/panic.h"
+#include "ata.h"
+#include "arch/x64/io.h"
 
 #include "fors/types.h"
 #include "forslib/string.h"
@@ -37,6 +39,16 @@ void task1(void *)
 void _start(void)
 {
     arch_initialise();
+
+    char buff[512];
+
+    ata_device_t atadev;
+    ata_init_device(&atadev, true, true);
+
+    int res = ata_read_sector(&atadev, 0, buff);
+    if (res == ATA_OK) {
+        printk("Successfully read block: %s\n", buff);
+    }
 
     /* Initialise filesystem root */
     mount_t *testmnt = &mounts[0];
@@ -70,6 +82,7 @@ void _start(void)
     enqueue_proc(tid);
     arch_start_running_procs();
 
+__attribute_maybe_unused__ hlt:
     for (;;) {
         __asm__("hlt");
     }
