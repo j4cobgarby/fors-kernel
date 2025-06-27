@@ -128,9 +128,8 @@ store_id register_store(char storetype[8], const char *cfg)
     if (id == MAX_STORES) return -1;
     store_t *st = &stores[id];
 
-    storetype_id stid = find_storetype("atapio");
+    storetype_id stid = find_storetype(storetype);
     if (stid < 0) return -1;
-    printk("Found storetype ID=%d\n", stid);
 
     store_type_t *type = &store_types[stid];
 
