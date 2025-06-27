@@ -28,7 +28,9 @@ void task1(void *)
     __asm__ volatile("int $0xf0" : "=a"(ret) : "a"(0), "S"("test.txt"), "b"(2));
 
     int nread = -1;
-    __asm__ volatile("int $0xf0" : "=a"(nread) : "a"(2), "S"(buff), "b"(ret), "c"(128));
+    __asm__ volatile("int $0xf0"
+        : "=a"(nread)
+        : "a"(2), "S"(buff), "b"(ret), "c"(128));
 
     __asm__ volatile("int $0xf0" : : "a"(100), "S"("File contents:\n"));
     __asm__ volatile("int $0xf0" : : "a"(100), "S"(buff));
@@ -41,13 +43,12 @@ void _start(void)
     arch_initialise();
 
     register_storetype(ata_store_type);
-    
+
     store_id si = register_store("atapio", "pm");
 
     char *buf;
     int ret = bc_get(si, 0, &buf);
-    if (ret)
-	printk("Read from ATA: '%s'\n", buf);
+    if (ret) printk("Read from ATA: '%s'\n", buf);
 
     strcpy(buf, "Overwritten!");
     printk("Written: ret=%d\n", bc_put(si, 0));
@@ -84,8 +85,8 @@ void _start(void)
     enqueue_proc(tid);
     arch_start_running_procs();
 
-__attribute_maybe_unused__ hlt:
-    for (;;) {
+    __attribute_maybe_unused__ hlt : for (;;)
+    {
         __asm__("hlt");
     }
 }

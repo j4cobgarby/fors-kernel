@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-#define IOPB_SIZE 130 // Fit all ports we want to control, at least, plus terminating 0xff
+#define IOPB_SIZE                                                              \
+    130 // Fit all ports we want to control, at least, plus terminating 0xff
 
 typedef struct tss_t {
     uint32_t _0;

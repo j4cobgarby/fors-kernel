@@ -91,7 +91,7 @@ void x64_init_physical_memory()
 
         if (ent->type == LIMINE_MEMMAP_USABLE) {
             for (int byte = ent->length - ARCH_PAGE_SIZE; byte >= 0;
-                 byte -= ARCH_PAGE_SIZE) {
+                byte -= ARCH_PAGE_SIZE) {
                 frame_insert((void *)ent->base + byte);
             }
         }

@@ -4,13 +4,13 @@
 void *balloc(size_t size, buddy_allocator *alloc)
 {
     if (size > alloc->size) {
-	printk("[balloc] Want more memory than total size.\n");
+        printk("[balloc] Want more memory than total size.\n");
         return NULL;
         // TODO: Could allocate more memory for the buddy allocator here.
     }
 
     if (size <= 0) {
-	printk("[balloc] Want negative size.\n");
+        printk("[balloc] Want negative size.\n");
         return NULL;
     }
 
@@ -55,7 +55,7 @@ void *balloc(size_t size, buddy_allocator *alloc)
 
         /* At this point, no available blocks have been found of any suitable
          * order, so NULL will be returned. */
-	printk("[balloc] No blocks found of any suitable order.\n");
+        printk("[balloc] No blocks found of any suitable order.\n");
         ret_block = NULL;
     }
 

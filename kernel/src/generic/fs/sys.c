@@ -22,7 +22,8 @@ char *new_prepend_cwd(const char *cwd, const char *rel)
     return full_path;
 }
 
-pfd_t find_free_proc_fd(pid_t pid) {
+pfd_t find_free_proc_fd(pid_t pid)
+{
     if (pid >= MAX_PROCS) {
         return -1;
     }
@@ -66,7 +67,8 @@ long long __sys_close(pfd_t pfd)
     return vfs_close(fd);
 }
 
-long long __sys_read(pfd_t pfd, size_t num, char *buff) {
+long long __sys_read(pfd_t pfd, size_t num, char *buff)
+{
     if (!PFD_VALID(pfd)) return -1;
     fd_t fd = procs[current_proc].fdmap[pfd];
     if (fd < 0) return -1;
@@ -74,7 +76,8 @@ long long __sys_read(pfd_t pfd, size_t num, char *buff) {
     return vfs_read(fd, num, buff);
 }
 
-long long __sys_write(pfd_t pfd, size_t num, const char *buff) {
+long long __sys_write(pfd_t pfd, size_t num, const char *buff)
+{
     if (!PFD_VALID(pfd)) return -1;
     fd_t fd = procs[current_proc].fdmap[pfd];
     if (fd < 0) return -1;

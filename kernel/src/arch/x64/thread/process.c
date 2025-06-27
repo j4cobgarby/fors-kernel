@@ -43,7 +43,7 @@ pml4_entry_t *new_blank_user_pml4()
      * and ends to actual page boundaries. */
 
     for (size_t off = FORS_CODE_OFFSET;
-         off < FORS_CODE_END_OFFSET + ARCH_PAGE_SIZE; off += ARCH_PAGE_SIZE) {
+        off < FORS_CODE_END_OFFSET + ARCH_PAGE_SIZE; off += ARCH_PAGE_SIZE) {
         if (map_page_4k(new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT)
             < 0) {
             KPANIC("Failed mapping.\n");
@@ -51,7 +51,7 @@ pml4_entry_t *new_blank_user_pml4()
     }
 
     for (size_t off = FORS_RO_OFFSET; off < FORS_RO_END_OFFSET + ARCH_PAGE_SIZE;
-         off += ARCH_PAGE_SIZE) {
+        off += ARCH_PAGE_SIZE) {
         if (map_page_4k(
                 new_pml4, fors_phys + off, fors_load + off, PSE_PRESENT)) {
             KPANIC("Failed mapping.\n");
@@ -59,7 +59,7 @@ pml4_entry_t *new_blank_user_pml4()
     }
 
     for (size_t off = FORS_RW_OFFSET; off < FORS_RW_END_OFFSET + ARCH_PAGE_SIZE;
-         off += ARCH_PAGE_SIZE) {
+        off += ARCH_PAGE_SIZE) {
         if (map_page_4k(new_pml4, fors_phys + off, fors_load + off,
                 PSE_PRESENT | PSE_WRITABLE)) {
             KPANIC("Failed mapping.\n");
@@ -100,7 +100,7 @@ long create_process(
         th->status = PROC_READY;
         th->cwd = (char *)default_cwd;
         strncpy(th->name, name, PROC_NAME_LENGTH);
-        
+
         for (int i = 0; i < FDS_PER_PROC; i++) {
             th->fdmap[i] = -1;
         }

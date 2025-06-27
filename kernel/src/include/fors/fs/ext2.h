@@ -26,10 +26,7 @@ int ext2_delnode(fsnode_t *, const char *);
 
 extern filesystem_type_t ext2_type;
 
-typedef enum ext2_state_t : uint16_t {
-    S_CLEAN,
-    S_ERRORS
-} ext2_state_t;
+typedef enum ext2_state_t : uint16_t { S_CLEAN, S_ERRORS } ext2_state_t;
 
 typedef enum ext2_errhandling_t : uint16_t {
     H_IGNORE,
@@ -44,7 +41,7 @@ typedef struct ext2_superblock_t {
     uint32_t n_blks_unalloc;
     uint32_t n_ino_unalloc;
     uint32_t superblk_ind;
-    uint32_t blk_sz; // log2(blk size) - 10
+    uint32_t blk_sz;  // log2(blk size) - 10
     uint32_t frag_sz; // log2(frag size) - 10
     uint32_t blks_per_group;
     uint32_t frags_per_group;
@@ -71,15 +68,15 @@ typedef struct ext2_extended_superblock_t {
     uint16_t super_block_group;
     uint32_t opt_features; // Optional features
     uint32_t req_features; // Reqd. features
-    uint32_t wr_features; // Features reqd. for writing
-    char     fs_id[16];
-    char     volume_name[16];
-    char     last_mountpoint[64];
+    uint32_t wr_features;  // Features reqd. for writing
+    char fs_id[16];
+    char volume_name[16];
+    char last_mountpoint[64];
     uint32_t compress_algo;
-    uint8_t  prealloc_blocks_file;
-    uint8_t  prealloc_blocks_dir;
+    uint8_t prealloc_blocks_file;
+    uint8_t prealloc_blocks_dir;
     uint16_t _unused;
-    char     journ_id[16];
+    char journ_id[16];
     uint32_t journ_inode;
     uint32_t journ_device;
     uint32_t orphans_head;
@@ -92,8 +89,8 @@ typedef struct ext2_extended_superblock_t {
 #define EXT2_REQF_USESJOURN   0x08
 
 // Write-required features flags
-#define EXT2_WREQF_SPARSE     0x01
-#define EXT2_WREQF_64BITFILE  0x02
-#define EXT2_WREQF_BTREE      0x04
+#define EXT2_WREQF_SPARSE    0x01
+#define EXT2_WREQF_64BITFILE 0x02
+#define EXT2_WREQF_BTREE     0x04
 
 #endif

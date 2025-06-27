@@ -12,7 +12,7 @@ typedef long gid_t;
 typedef long pid_t;
 typedef long timestamp_t;
 
-typedef long fd_t; /* Global file descriptor */
+typedef long fd_t;  /* Global file descriptor */
 typedef long pfd_t; // Process-local fd
 
 #define PFD_VALID(pfd) ((pfd) < FDS_PER_PROC && (pfd) >= 0)

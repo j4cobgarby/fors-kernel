@@ -13,9 +13,9 @@
 #include "fors/ata.h"
 #include "fors/types.h"
 
-#define STORE_OK 0
-#define STORE_ERR_TIMEOUT -1
-#define STORE_ERR_NOBLK -2
+#define STORE_OK           0
+#define STORE_ERR_TIMEOUT  -1
+#define STORE_ERR_NOBLK    -2
 #define STORE_ERR_SETTINGS -3
 
 struct store_type_t;
@@ -24,15 +24,15 @@ struct bc_entry_t;
 typedef struct store_t {
     struct store_type_t *type;
     union {
-	ata_device_t ata_info;
+        ata_device_t ata_info;
     } dev;
 
     struct bc_entry_t *bc_first;
 } store_t;
 
 #define MAX_CACHED_BLOCKS 128
-#define MAX_STORES 8
-#define MAX_STORETYPES 4
+#define MAX_STORES        8
+#define MAX_STORETYPES    4
 
 extern int bc_cached_count;
 extern store_type_t store_types[MAX_STORETYPES];

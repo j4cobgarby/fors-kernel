@@ -89,8 +89,7 @@ static int can_read(struct uart_com_port port)
 void com_send(struct uart_com_port port, char c)
 {
     if (port.status == COM_PORT_STATUS_READY) {
-        while (!can_send(port))
-            ;
+        while (!can_send(port));
 
         outb(port.io_port_base + COM_PORT_OFFSET_DATA, c);
     }
@@ -106,8 +105,7 @@ void com_sends(struct uart_com_port port, const char *s)
 char com_read(struct uart_com_port port)
 {
     if (port.status == COM_PORT_STATUS_READY) {
-        while (!can_read(port))
-            ;
+        while (!can_read(port));
 
         return inb(port.io_port_base + COM_PORT_OFFSET_DATA);
     }

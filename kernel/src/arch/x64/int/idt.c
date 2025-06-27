@@ -90,7 +90,7 @@ void idt_init()
     tss.rsp0 = (uint64_t)allocate_stack();
     tss.io_bitmap_offset = offsetof(struct tss_t, iopb);
     memset(tss.iopb, 0x00, IOPB_SIZE);
-    tss.iopb[IOPB_SIZE-1] = 0xff;
+    tss.iopb[IOPB_SIZE - 1] = 0xff;
 }
 
 void idt_load(struct idt_entry *table, int n_entries)
@@ -123,7 +123,8 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
            trying to access the kernel heap, or something like that.
         */
     case INT_GP:
-        KPANIC_VA("General Protection Fault (%d) RIP='%p'", ctx->error_code, ctx->rip);
+        KPANIC_VA("General Protection Fault (%d) RIP='%p'", ctx->error_code,
+            ctx->rip);
     case INT_DE:
         KPANIC("Division by zero encounters!");
 

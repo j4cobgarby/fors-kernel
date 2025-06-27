@@ -32,19 +32,19 @@ extern const void *_FORS_KERNEL_TEMP_MAP_PAGE;
 extern const void *_FORS_HEAP_START;
 
 #define FORS_CODE_OFFSET                                                       \
-    ((uint64_t) & _FORS_KERNEL_CODE_START - (uint64_t) & _FORS_KERNEL_START)
+    ((uint64_t)&_FORS_KERNEL_CODE_START - (uint64_t)&_FORS_KERNEL_START)
 #define FORS_CODE_END_OFFSET                                                   \
-    ((uint64_t) & _FORS_KERNEL_CODE_END - (uint64_t) & _FORS_KERNEL_START)
+    ((uint64_t)&_FORS_KERNEL_CODE_END - (uint64_t)&_FORS_KERNEL_START)
 
 #define FORS_RO_OFFSET                                                         \
-    ((uint64_t) & _FORS_KERNEL_RO_START - (uint64_t) & _FORS_KERNEL_START)
+    ((uint64_t)&_FORS_KERNEL_RO_START - (uint64_t)&_FORS_KERNEL_START)
 #define FORS_RO_END_OFFSET                                                     \
-    ((uint64_t) & _FORS_KERNEL_RO_END - (uint64_t) & _FORS_KERNEL_START)
+    ((uint64_t)&_FORS_KERNEL_RO_END - (uint64_t)&_FORS_KERNEL_START)
 
 #define FORS_RW_OFFSET                                                         \
-    ((uint64_t) & _FORS_KERNEL_RW_START - (uint64_t) & _FORS_KERNEL_START)
+    ((uint64_t)&_FORS_KERNEL_RW_START - (uint64_t)&_FORS_KERNEL_START)
 #define FORS_RW_END_OFFSET                                                     \
-    ((uint64_t) & _FORS_KERNEL_RW_END - (uint64_t) & _FORS_KERNEL_START)
+    ((uint64_t)&_FORS_KERNEL_RW_END - (uint64_t)&_FORS_KERNEL_START)
 
 struct frame_marker {
     struct frame_marker *next;
@@ -175,10 +175,8 @@ extern gdt_table_entry gdt_table[];
     }
 
 #define INIT_TSS_DESCRIPTOR_SECOND_HALF(base)                                  \
-    (gdt_table_entry)                                                          \
-    {                                                                          \
-        .base_32_63 = ((base) >> 32) & 0xffffffff, .reserved = 0               \
-    }
+    (gdt_table_entry) { .base_32_63 = ((base) >> 32) & 0xffffffff,             \
+        .reserved = 0 }
 
 struct __attribute__((packed)) gdtr_image {
     uint16_t limit;
