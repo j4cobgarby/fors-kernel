@@ -40,6 +40,8 @@ void pic_map(uint8_t offset_master, uint8_t offset_slave)
     // Right now disable all IRQs, except IRQ2 (so the slave can raise IRQs if
     // they're enabled)
     outb(PIC_MASTER_DAT, 0xfb);
+
+    outb(PIC_SLAVE_DAT, 0xff);
     outb(PIC_SLAVE_DAT, 0xff);
 
     /* Enable interrupts for the first time */
@@ -57,10 +59,11 @@ void pic_block_irq(uint8_t irq)
         irq -= 8;
     }
 
-    outb(port, inb(port) | (1 << irq));
+    uint8_t val = inb(port) | (1 << irq);
+    outb(port, val);
 }
 
-void pic_unblock_irq /*<3*/ (uint8_t irq)
+void pic_unblock_irq(uint8_t irq)
 {
     uint16_t port;
 
@@ -71,7 +74,8 @@ void pic_unblock_irq /*<3*/ (uint8_t irq)
         irq -= 8;
     }
 
-    outb(port, inb(port) & ~(1 << irq));
+    uint8_t out_val = inb(port) & ~(1 << irq);
+    outb(port, out_val);
 }
 
 void pic_eoi(uint8_t irq)

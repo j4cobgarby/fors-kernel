@@ -11,12 +11,6 @@ void arch_early_setup()
     }
 }
 
-void arch_late_setup()
-{
-    pic_map(PIC_FIRST_VECTOR, PIC_FIRST_VECTOR + 8);
-    pic_unblock_irq(1); // Keyboard
-}
-
 void arch_initialise()
 {
     if (x64_uart_init() < 0) {
@@ -26,5 +20,5 @@ void arch_initialise()
     memory_initialise();
 
     pic_map(PIC_FIRST_VECTOR, PIC_FIRST_VECTOR + 8);
-    pic_unblock_irq(1); // Keyboard
+    pic_unblock_irq(PIC_IRQ_KEYBOARD);
 }

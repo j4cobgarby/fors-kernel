@@ -8,6 +8,11 @@
 
 #define PIC_FIRST_VECTOR 0x20
 
+#define PIC_IRQ_PITTIMER 0x00
+#define PIC_IRQ_KEYBOARD 0x01
+#define PIC_IRQ_ATABUS_MASTER 0x0e
+#define PIC_IRQ_ATABUS_SLAVE  0x0f
+
 #include <stdint.h>
 
 void pic_map(uint8_t offset_master, uint8_t offset_slave);

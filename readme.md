@@ -1,14 +1,19 @@
 # Fors Kernel
 
-A small microkernel, with a few interesting features, and hopefully code which is straightforward to understand for the most part.
+## TODO
 
-## Documentation
-
-A lot of documentation exists as an [obsidian vault](docs/fors-notes), but this can also be read just fine as a standalone collection of markdown documents.
+ - ~~Virtual file system interface~~
+ - Buffer cache
+    - ~~ATA Hard Disk Controller~~
+    - EXT2 Filesystem
+ - PCI Controller
+    - Then, network interface card
+    - PCI storage devices
+ - Loading programs from disk
 
 ## Features
 
-This is very much _in development_, and most of these features may well not be implemented yet.
+Since it doesn't do what I want yet, the following are what I consider might be nice features to implement once the base is there.
 
 ### Inter-process communication
 
@@ -32,5 +37,3 @@ Below is a list of some proposed use cases of this pub/sub IPC mechanism. It is 
  - **Transparent interfaces to other pub/sub systems**: There are several widely used pub/sub messaging systems, for instance MQTT and ROS. These could be implemented as layers on top of the fors pub/sub system (in a similar manner to other filesystems mounted at certain points in a Linux virtual filesystem). This could make these other systems simpler to integrate with applications.
 
  - **Granular events**: An arbitrary amount of topics can exist, which means there can be an arbitrary amount of different events that a process can respond to in a similar fashion to responding to traditional UNIX signals. For instance, there could be a topic for system wide events relating to device status, which could contain messages such as "New USB drive connected", or "Mouse disconnected", etc. This would be a kernel-published topic. A userspace published topic could be for general user-facing notifications. All sorts of applications could publish to this topic, for example: email and messaging clients, to notify users when they receive a communication; compilers, renderers, and other long-processing-time applications, to notify users when a job is done; and power/battery managers and other system-type jobs, to notify users if they're on low battery, or if perhaps a disk failure was detected.
-
-#### Signals

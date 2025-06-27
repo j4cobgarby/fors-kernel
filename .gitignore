@@ -11,3 +11,6 @@ qemulog.txt
 qemuout.txt
 /test/a.out
 *.vim
+tags
+qemulog.txt
+disk.img
