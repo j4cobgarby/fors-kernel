@@ -33,10 +33,6 @@ int ext2_seek(openfile_t *file, long offset, int anchor) {
     return 0;
 }
 
-long long ext2_getpos(openfile_t *file) {
-    return 0;
-}
-
 int ext2_write(openfile_t *file, size_t nbytes, const char *buffer) {
     return 0;
 }
@@ -64,7 +60,6 @@ filesystem_type_t ext2_type = {
     ext2_open,
     ext2_close,
     ext2_seek,
-    ext2_getpos,
     ext2_read,
     ext2_write,
     ext2_newfile,

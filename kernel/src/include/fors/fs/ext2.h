@@ -19,7 +19,6 @@ int ext2_save_node(fsnode_t *file);
 int ext2_open(fsnode_t *node);
 int ext2_close(openfile_t *file);
 int ext2_seek(openfile_t *file, long offset, int anchor);
-long long ext2_getpos(openfile_t *file);
 int ext2_write(openfile_t *file, size_t nbytes, const char *buffer);
 int ext2_newfile(fsnode_t *, const char *, fsn_perm_t, uid_t, gid_t);
 int ext2_newdir(fsnode_t *, const char *, fsn_perm_t, uid_t, gid_t);
