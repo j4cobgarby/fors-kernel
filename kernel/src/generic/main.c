@@ -6,7 +6,8 @@
 #include "fors/filesystem.h"
 #include "fors/fs/test.h"
 #include "fors/panic.h"
-#include "ata.h"
+#include "fors/ata.h"
+#include "fors/store.h"
 
 #include "fors/types.h"
 #include "forslib/string.h"
@@ -39,15 +40,32 @@ void _start(void)
 {
     arch_initialise();
 
-    char buff[512];
+    // char buff[512];
+    //
+    // ata_device_t atadev;
+    // ata_init_device(&atadev, true, true);
+    //
+    // int res = ata_read_sector(&atadev, 0, buff);
+    // if (res == ATA_OK) {
+    //     printk("Successfully read block: %s\n", buff);
+    // }
+    
+    /* Initialise storage */
+    register_storetype(ata_store_type);
+    
+    stores[0] = (store_t){
+	.type = &store_types[0],
+	.bc_first = NULL,
+    };
 
-    ata_device_t atadev;
-    ata_init_device(&atadev, true, true);
+    ata_init_device(&stores[0].dev.ata_info, true, true);
 
-    int res = ata_read_sector(&atadev, 0, buff);
-    if (res == ATA_OK) {
-        printk("Successfully read block: %s\n", buff);
-    }
+    printk("Registered device\n");
+
+    char *buf;
+    int ret = bc_get(0, 0, &buf);
+    printk("Read block into buffer, ret = %d, buf @ %x\n", ret, buf);
+    printk("Data: '%s'\n", buf);
 
     /* Initialise filesystem root */
     mount_t *testmnt = &mounts[0];

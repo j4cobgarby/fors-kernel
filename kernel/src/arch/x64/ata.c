@@ -1,6 +1,27 @@
-#include "ata.h"
+#include "fors/ata.h"
 #include "arch/x64/io.h"
 #include "arch/x64/pic.h"
+
+static int st_rd(void *dev, size_t addr, char *buf) {
+    return ATA_OK == ata_read_sector((ata_device_t *)dev, addr, buf);
+}
+
+static int st_wr(void *dev, size_t addr, const char *buf) {
+    return ATA_OK == ata_write_sector((ata_device_t *)dev, addr, buf);
+}
+
+static size_t st_nb(void *dev) {
+    return ata_num_blocks((ata_device_t *)dev);
+}
+
+store_type_t ata_store_type = {
+    .name = "ata.pio.",
+    .block_sz = 512,
+    .init = NULL,
+    .rd = &st_rd,
+    .wr = &st_wr,
+    .nblocks = &st_nb,
+};
 
 // Initialize ATA device structure
 void ata_init_device(ata_device_t *dev, bool primary, bool master) {
@@ -49,7 +70,7 @@ int ata_wait_drq(ata_device_t *dev) {
 }
 
 // Select drive and set up LBA addressing
-int ata_select_drive(ata_device_t *dev, uint32_t lba) {
+int ata_select_drive(ata_device_t *dev, size_t lba) {
     uint8_t drive_select = (dev->drive == 0 ? ATA_DRIVE_MASTER : ATA_DRIVE_SLAVE) | 
                           ATA_DRIVE_LBA | ((lba >> 24) & 0x0F);
     
@@ -64,7 +85,7 @@ int ata_select_drive(ata_device_t *dev, uint32_t lba) {
 }
 
 // Read a single 512-byte sector
-int ata_read_sector(ata_device_t *dev, uint32_t lba, void *buffer) {
+int ata_read_sector(ata_device_t *dev, size_t lba, char *buffer) {
     uint16_t *buf = (uint16_t *)buffer;
     int ret;
     
@@ -99,7 +120,7 @@ int ata_read_sector(ata_device_t *dev, uint32_t lba, void *buffer) {
 }
 
 // Write a single 512-byte sector
-int ata_write_sector(ata_device_t *dev, uint32_t lba, const void *buffer) {
+int ata_write_sector(ata_device_t *dev, size_t lba, const char *buffer) {
     const uint16_t *buf = (const uint16_t *)buffer;
     int ret;
     
@@ -144,11 +165,9 @@ int ata_write_sector(ata_device_t *dev, uint32_t lba, const void *buffer) {
 }
 
 // Read multiple sectors
-int ata_read_sectors(ata_device_t *dev, uint32_t start_lba, uint32_t count, void *buffer) {
-    uint8_t *buf = (uint8_t *)buffer;
-    
-    for (uint32_t i = 0; i < count; i++) {
-        int ret = ata_read_sector(dev, start_lba + i, buf + (i * 512));
+int ata_read_sectors(ata_device_t *dev, size_t start_lba, size_t count, char *buffer) {
+    for (size_t i = 0; i < count; i++) {
+        int ret = ata_read_sector(dev, start_lba + i, buffer + (i * 512));
         if (ret != ATA_OK) {
             return ret;
         }
@@ -158,11 +177,9 @@ int ata_read_sectors(ata_device_t *dev, uint32_t start_lba, uint32_t count, void
 }
 
 // Write multiple sectors
-int ata_write_sectors(ata_device_t *dev, uint32_t start_lba, uint32_t count, const void *buffer) {
-    const uint8_t *buf = (const uint8_t *)buffer;
-    
-    for (uint32_t i = 0; i < count; i++) {
-        int ret = ata_write_sector(dev, start_lba + i, buf + (i * 512));
+int ata_write_sectors(ata_device_t *dev, size_t start_lba, size_t count, const char *buffer) {
+    for (size_t i = 0; i < count; i++) {
+        int ret = ata_write_sector(dev, start_lba + i, buffer + (i * 512));
         if (ret != ATA_OK) {
             return ret;
         }
@@ -196,4 +213,8 @@ int ata_identify(ata_device_t *dev, uint16_t *identify_data) {
     }
     
     return ATA_OK;
+}
+
+size_t ata_num_blocks(ata_device_t *dev) {
+    return 0; // TODO
 }

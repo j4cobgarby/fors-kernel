@@ -1,6 +1,8 @@
 #ifndef INCLUDE_FORS_TYPES_H_
 #define INCLUDE_FORS_TYPES_H_
 
+#include <stdlib.h>
+
 typedef long long ssize_t;
 
 typedef long dev_id_t;
@@ -42,5 +44,15 @@ typedef unsigned of_mode_t;
 #define OF_WRITE  (1 << 0)
 #define OF_READ   (1 << 1)
 #define OF_APPEND (1 << 2)
+
+/* Interface which store types implement */
+typedef struct store_type_t {
+    char name[8];
+    size_t block_sz;
+    int (*init)(void *dev);
+    int (*rd)(void *dev, size_t addr, char *buf);
+    int (*wr)(void *dev, size_t addr, const char *buf);
+    size_t (*nblocks)(void *dev);
+} store_type_t;
 
 #endif // INCLUDE_FORS_TYPES_H_

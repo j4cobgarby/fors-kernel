@@ -1,9 +1,9 @@
-#ifndef ATA_H
-#define ATA_H
+#ifndef __INCLUDE_FORS_ATA_H__
+#define __INCLUDE_FORS_ATA_H__
 
 #include <stdint.h>
+#include "fors/types.h"
 
-// ATA-PIO port definitions for primary and secondary controllers
 #define ATA_PRIMARY_DATA        0x1F0
 #define ATA_PRIMARY_ERROR       0x1F1
 #define ATA_PRIMARY_FEATURES    0x1F1
@@ -66,21 +66,24 @@ int ata_wait_ready(ata_device_t *dev);
 int ata_wait_drq(ata_device_t *dev);
 
 // Select drive and set up LBA addressing
-int ata_select_drive(ata_device_t *dev, uint32_t lba);
+int ata_select_drive(ata_device_t *dev, size_t lba);
 
 // Read a single 512-byte sector
-int ata_read_sector(ata_device_t *dev, uint32_t lba, void *buffer);
+int ata_read_sector(ata_device_t *dev, size_t lba, char *buffer);
 
 // Write a single 512-byte sector
-int ata_write_sector(ata_device_t *dev, uint32_t lba, const void *buffer);
+int ata_write_sector(ata_device_t *dev, size_t lba, const char *buffer);
 
 // Read multiple sectors
-int ata_read_sectors(ata_device_t *dev, uint32_t start_lba, uint32_t count, void *buffer);
+int ata_read_sectors(ata_device_t *dev, size_t start_lba, size_t count, char *buffer);
 
 // Write multiple sectors
-int ata_write_sectors(ata_device_t *dev, uint32_t start_lba, uint32_t count, const void *buffer);
+int ata_write_sectors(ata_device_t *dev, size_t start_lba, size_t count, const char *buffer);
 
-// Simple drive identification (optional);
 int ata_identify(ata_device_t *dev, uint16_t *identify_data);
 
-#endif // ATA_H
+size_t ata_num_blocks(ata_device_t *dev);
+
+extern store_type_t ata_store_type;
+
+#endif // __INCLUDE_FORS_ATA_H__
