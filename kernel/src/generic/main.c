@@ -7,7 +7,6 @@
 #include "fors/fs/test.h"
 #include "fors/panic.h"
 #include "ata.h"
-#include "arch/x64/io.h"
 
 #include "fors/types.h"
 #include "forslib/string.h"

@@ -2,7 +2,6 @@
 #define ATA_H
 
 #include <stdint.h>
-#include <stdbool.h>
 
 // ATA-PIO port definitions for primary and secondary controllers
 #define ATA_PRIMARY_DATA        0x1F0

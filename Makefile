@@ -56,7 +56,7 @@ NASMFILES := $(shell find $(SRC)/generic -type f -name '*.asm') $(shell find $(S
 OBJS = $(addprefix $(BUILD)/, $(CFILES:.c=.o) $(NASMFILES:.asm=.o))
 
 .PHONY: all
-all: $(TARGET_ISO)
+all: $(TARGET_ISO) disk.img
 
 $(TARGET_ISO): $(KERNEL_EXE)
 	@rm -rf $(BUILD)/iso

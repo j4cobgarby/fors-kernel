@@ -171,7 +171,6 @@ int ata_write_sectors(ata_device_t *dev, uint32_t start_lba, uint32_t count, con
     return ATA_OK;
 }
 
-// Simple drive identification (optional)
 int ata_identify(ata_device_t *dev, uint16_t *identify_data) {
     int ret;
     
@@ -181,7 +180,6 @@ int ata_identify(ata_device_t *dev, uint16_t *identify_data) {
     ret = ata_select_drive(dev, 0);
     if (ret != ATA_OK) return ret;
     
-    // Send identify command
     outb(dev->base_port + 7, ATA_CMD_IDENTIFY);
     
     // Check if drive exists
@@ -193,7 +191,6 @@ int ata_identify(ata_device_t *dev, uint16_t *identify_data) {
     ret = ata_wait_drq(dev);
     if (ret != ATA_OK) return ret;
     
-    // Read 256 words of identify data
     for (int i = 0; i < 256; i++) {
         identify_data[i] = inw(dev->base_port);
     }
