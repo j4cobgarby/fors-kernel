@@ -44,6 +44,7 @@ CFLAGS = -Wall -Wextra  	\
 LDFLAGS = \
 	-nostdlib -static \
 	-z max-page-size=0x1000 \
+	-z noexecstack \
 	-T $(KERN_DIR)/linker.ld \
 	-m elf_x86_64 \
 	-no-pie
