@@ -44,6 +44,13 @@ int ext2_initmnt(mount_t *mnt)
     if (!st) return -1;
 
     ext2_superblock_t *sb = get_sb(mnt);
+    printk("[ext2] Mounting filesystem with %d inodes, %d blocks.\n", sb->n_ino, sb->n_blks);
+    
+    if (sb->vers_major < 1) {
+	printk("[ext2] No support for ext2 version < 1! Aborting.\n");
+	return -1;
+    }
+#if 0
     printk("== ext2 superblock ==\n");
     printk(" - n_ino: %d\n", sb->n_ino);
     printk(" - n_blks: %d\n", sb->n_blks);
@@ -69,75 +76,10 @@ int ext2_initmnt(mount_t *mnt)
     printk(" - resvd_uid: %d\n", sb->resvd_uid);
     printk(" - resvd_gid: %d\n", sb->resvd_gid);
     printk(" - sz_ino_struct: %d\n", sb->sz_ino_struct);
-
-    fsnode_t nd;
-    nd.mountpoint = mnt;
-    int ret = ext2_node_from_id(2, &nd);
-    if (ret < 0) {
-	printk("Failed to get inode.\n");
-    } else {
-	printk("Got inode!\n");
-	printk("Creation time: %d\n", nd.create_time);
-    }
-
-    // printk("num block groups = %d\n", n_blkgroups(mnt));
-    //
-    // // The sb is at byte 1024, and is 1024 bytes long.
-    // // The block group descriptor table is at the block which follows.
-    // size_t table_seg = blk2lba(mnt, 1 + byte2blk(sb->blk_sz, 1024));
-    //
-    // ext2_blkgroup_descriptor_t *table;
-    // int ret = bc_get(mnt->dev, table_seg, (char**)&table);
-    // if (!ret) return -1;
-    //
-    // printk("== first block group descriptor ==\n");
-    // printk(" - block_bitmap_addr: %d\n", table[0].block_bitmap_addr);
-    // printk(" - inode_bitmap_addr: %d\n", table[0].inode_bitmap_addr);
-    // printk(" - inode_table_addr: %d\n", table[0].inode_table_addr);
-    // printk(" - n_unalloc_blocks: %d\n", table[0].n_unalloc_blocks);
-    // printk(" - n_unalloc_inodes: %d\n", table[0].n_unalloc_inodes);
-    // printk(" - n_dirs: %d\n", table[0].n_dirs);
-    //
-    // char *inodes;
-    // ret = bc_get(mnt->dev, blk2lba(mnt, table[0].inode_table_addr), &inodes);
-    // if (!ret) return -1;
-    //
-    // const int ino_n = 2;
-    // ext2_inode_t *ino = (ext2_inode_t *)&inodes[(ino_n - 1) * sb->sz_ino_struct];
-    //
-    // printk("== inode #%d ==\n", ino_n);
-    // printk(" - type_perm: %x\n", ino->type_perm);
-    // printk(" - uid: %d\n", ino->uid);
-    // printk(" - sz_lo: %d\n", ino->sz_lo);
-    // printk(" - t_access: %d\n", ino->t_access);
-    // printk(" - t_create: %d\n", ino->t_create);
-    // printk(" - t_modify: %d\n", ino->t_modify);
-    // printk(" - t_delete: %d\n", ino->t_delete);
-    // printk(" - gid: %d\n", ino->gid);
-    // printk(" - n_hard_links: %d\n", ino->n_hard_links);
-    // printk(" - n_sects_on_disk: %d\n", ino->n_sects_on_disk);
-    // printk(" - flags: %x\n", ino->flags);
-    // printk(" - os_val: %d\n", ino->os_val);
-    // printk(" - blk0: %d\n", ino->blk0);
-    // printk(" - blk1: %d\n", ino->blk1);
-    // printk(" - blk2: %d\n", ino->blk2);
-    // printk(" - blk3: %d\n", ino->blk3);
-    // printk(" - blk4: %d\n", ino->blk4);
-    // printk(" - blk5: %d\n", ino->blk5);
-    // printk(" - blk6: %d\n", ino->blk6);
-    // printk(" - blk7: %d\n", ino->blk7);
-    // printk(" - blk8: %d\n", ino->blk8);
-    // printk(" - blk9: %d\n", ino->blk9);
-    // printk(" - blk10: %d\n", ino->blk10);
-    // printk(" - blk11: %d\n", ino->blk11);
-    // printk(" - blk_list: %d\n", ino->blk_list);
-    // printk(" - blk_list_2: %d\n", ino->blk_list_2);
-    // printk(" - blk_list_3: %d\n", ino->blk_list_3);
-    // printk(" - generation: %d\n", ino->generation);
-    // printk(" - attr_ext: %d\n", ino->attr_ext);
-    // printk(" - sz_hi: %d\n", ino->sz_hi);
+#endif
 
     mnt->fs = &ext2_type;
+    mnt->root_fsnode = 2;
 
     return 0;
 }
@@ -173,7 +115,9 @@ int ext2_node_from_id(long id, fsnode_t *node)
 
     // The index of the inode within this specific block = (ind_in_grp * sz_ino_struct) % blk_size
     // So here we calculate the byte on the disk which the inode starts at
-    size_t start_byte = (blk * (1024 << blk_sz)) + (ind_in_grp * sz_ino_struct) / (1024 << blk_sz);
+    size_t start_byte = (blk * (1024 << blk_sz)) + (ind_in_grp * sz_ino_struct) % (1024 << blk_sz);
+    printk("Calculated that inode#%d starts at byte %d\n", id, start_byte);
+    printk("ind_in_grp = %d\n", ind_in_grp);
 
     size_t lba = blk2lba(node->mountpoint, blk);
     size_t byte_in_seg = start_byte - (lba * get_store_by_id(node->mountpoint->dev)->type->seg_sz);
@@ -189,6 +133,37 @@ int ext2_node_from_id(long id, fsnode_t *node)
     node->group = ino->gid;
     node->user = ino->uid;
     node->internal_id = id;
+    printk("Ext2 inode #%d\n", id);
+    printk(" - type_perm: %x\n", ino->type_perm);
+    printk(" - uid: %d\n", ino->uid);
+    printk(" - sz_lo: %d\n", ino->sz_lo);
+    printk(" - t_access: %d\n", ino->t_access);
+    printk(" - t_create: %d\n", ino->t_create);
+    printk(" - t_modify: %d\n", ino->t_modify);
+    printk(" - t_delete: %d\n", ino->t_delete);
+    printk(" - gid: %d\n", ino->gid);
+    printk(" - n_hard_links: %d\n", ino->n_hard_links);
+    printk(" - n_sects_on_disk: %d\n", ino->n_sects_on_disk);
+    printk(" - flags: %x\n", ino->flags);
+    printk(" - os_val: %d\n", ino->os_val);
+    printk(" - blk0: %d\n", ino->blk0);
+    printk(" - blk1: %d\n", ino->blk1);
+    printk(" - blk2: %d\n", ino->blk2);
+    printk(" - blk3: %d\n", ino->blk3);
+    printk(" - blk4: %d\n", ino->blk4);
+    printk(" - blk5: %d\n", ino->blk5);
+    printk(" - blk6: %d\n", ino->blk6);
+    printk(" - blk7: %d\n", ino->blk7);
+    printk(" - blk8: %d\n", ino->blk8);
+    printk(" - blk9: %d\n", ino->blk9);
+    printk(" - blk10: %d\n", ino->blk10);
+    printk(" - blk11: %d\n", ino->blk11);
+    printk(" - blk_list: %d\n", ino->blk_list);
+    printk(" - blk_list_2: %d\n", ino->blk_list_2);
+    printk(" - blk_list_3: %d\n", ino->blk_list_3);
+    printk(" - generation: %d\n", ino->generation);
+    printk(" - attr_ext: %d\n", ino->attr_ext);
+    printk(" - sz_hi: %d\n", ino->sz_hi);
     
     return 0;
 }

@@ -168,7 +168,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret)
         return ENOMAP;
     }
 
-    printk("\tPDPT @ %p\n", PSE_PTR(pml4_table[pml4_index]));
+    // printk("\tPDPT @ %p\n", PSE_PTR(pml4_table[pml4_index]));
     pml3_entry_t *pdpt_table
         = (pml3_entry_t *)(hhdm_offset + PSE_PTR(pml4_table[pml4_index]));
 
@@ -184,7 +184,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret)
         goto set_addr;
     }
 
-    printk("\tPDT @ %p\n", PSE_PTR(pdpt_table[pdpt_index]));
+    // printk("\tPDT @ %p\n", PSE_PTR(pdpt_table[pdpt_index]));
     pml2_entry_t *pdt_table
         = (pml2_entry_t *)(hhdm_offset + PSE_PTR(pdpt_table[pdpt_index]));
 
@@ -199,7 +199,7 @@ int map_lookup(pml4_entry_t *pml4_table, uintptr_t virt, uintptr_t *phys_ret)
         goto set_addr;
     }
 
-    printk("\tPT @ %p\n", PSE_PTR(pdt_table[pdt_index]));
+    // printk("\tPT @ %p\n", PSE_PTR(pdt_table[pdt_index]));
     pml1_entry_t *page_table
         = (pml1_entry_t *)(hhdm_offset + PSE_PTR(pdt_table[pdt_index]));
     if (!(page_table[pt_index] & PSE_PRESENT)) {

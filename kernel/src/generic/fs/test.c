@@ -72,6 +72,8 @@ int tfs_initmnt(mount_t *mnt)
 	return -1;
     }
 
+    printk("[test_fs] Mounted test_fs filesystem.\n");
+
     mnt->root_fsnode = ID_ROOT_DIR;
     mnt->fs = &testfs_type;
     return 0;
