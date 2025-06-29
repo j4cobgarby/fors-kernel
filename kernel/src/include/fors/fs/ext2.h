@@ -60,9 +60,8 @@ typedef struct ext2_superblock_t {
     uint32_t vers_major;
     uint16_t resvd_uid;
     uint16_t resvd_gid;
-} ext2_superblock_t;
 
-typedef struct ext2_extended_superblock_t {
+    // Extended fields
     uint32_t first_avail_ino;
     uint16_t sz_ino_struct;
     uint16_t super_block_group;
@@ -80,7 +79,7 @@ typedef struct ext2_extended_superblock_t {
     uint32_t journ_inode;
     uint32_t journ_device;
     uint32_t orphans_head;
-} ext2_extended_superblock_t;
+} __attribute__((packed)) ext2_superblock_t;
 
 // Required features flags
 #define EXT2_REQF_COMPRESSION 0x01
@@ -92,5 +91,58 @@ typedef struct ext2_extended_superblock_t {
 #define EXT2_WREQF_SPARSE    0x01
 #define EXT2_WREQF_64BITFILE 0x02
 #define EXT2_WREQF_BTREE     0x04
+
+typedef struct ext2_inode_t {
+    uint16_t type_perm;
+    uint16_t uid;
+    uint32_t sz_lo;
+    uint32_t t_access;
+    uint32_t t_create;
+    uint32_t t_modify;
+    uint32_t t_delete;
+    uint16_t gid;
+    uint16_t n_hard_links;
+    uint32_t n_sects_on_disk;
+    uint32_t flags;
+    uint32_t os_val;
+    uint32_t blk0;
+    uint32_t blk1;
+    uint32_t blk2;
+    uint32_t blk3;
+    uint32_t blk4;
+    uint32_t blk5;
+    uint32_t blk6;
+    uint32_t blk7;
+    uint32_t blk8;
+    uint32_t blk9;
+    uint32_t blk10;
+    uint32_t blk11;
+    uint32_t blk_list;
+    uint32_t blk_list_2;
+    uint32_t blk_list_3;
+    uint32_t generation;
+    uint32_t attr_ext;
+    uint32_t sz_hi;
+    uint32_t frag_addr;
+    uint32_t os_val_2[3];
+} __attribute__((packed)) ext2_inode_t;
+
+typedef struct ext2_dirent_t {
+    uint32_t inode;
+    uint16_t this_size;
+    uint8_t name_len;
+    uint8_t type;
+    char name[];
+} __attribute__((packed)) ext2_dirent_t;
+
+typedef struct ext2_blkgroup_descriptor_t {
+    uint32_t block_bitmap_addr;
+    uint32_t inode_bitmap_addr;
+    uint32_t inode_table_addr;
+    uint16_t n_unalloc_blocks;
+    uint16_t n_unalloc_inodes;
+    uint16_t n_dirs;
+    uint8_t _unused[14];
+} __attribute__((packed)) ext2_blkgroup_descriptor_t;
 
 #endif

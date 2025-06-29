@@ -26,7 +26,7 @@ storetype_id register_storetype(store_type_t type)
     return -1;
 }
 
-static store_t *get_store_by_id(store_id id)
+store_t *get_store_by_id(store_id id)
 {
     if (id < 0 || id >= MAX_STORES) return NULL;
     return &stores[id];
@@ -82,7 +82,8 @@ int bc_get(store_id id, size_t addr, char **buf)
             return 0;
         }
 
-        blk->data = kalloc(st->type->block_sz);
+        blk->data = kalloc(st->type->seg_sz);
+	blk->addr = addr;
         if (!blk->data) {
             printk("[store.c] Failed to allocate memory for new bc data "
                    "buffer.\n");

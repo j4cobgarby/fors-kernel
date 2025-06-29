@@ -5,6 +5,7 @@
 #include "fors/memory.h"
 #include "fors/filesystem.h"
 #include "fors/fs/test.h"
+#include "fors/fs/ext2.h"
 #include "fors/panic.h"
 #include "fors/ata.h"
 #include "fors/store.h"
@@ -30,7 +31,6 @@ void task1(void *)
     int nread = -1;
     __asm__ volatile("int $0xf0" : "=a"(nread) : "a"(2), "S"(buff), "b"(ret), "c"(128));
 
-    __asm__ volatile("int $0xf0" : : "a"(100), "S"("File contents:\n"));
     __asm__ volatile("int $0xf0" : : "a"(100), "S"(buff));
 
     for (;;) { }
@@ -44,18 +44,15 @@ void _start(void)
 
     store_id si = register_store("atapio", "pm");
 
-    char *buf;
-    int ret = bc_get(si, 0, &buf);
-    if (ret) printk("Read from ATA: '%s'\n", buf);
-
-    strcpy(buf, "Overwritten!");
-    printk("Written: ret=%d\n", bc_put(si, 0));
-
     /* Initialise filesystem root */
     mount_t *testmnt = &mounts[0];
     testmnt->dev = -1;
     testfs_type.initmnt(testmnt);
     vfs_root = get_node_byid(testmnt, testmnt->root_fsnode);
+
+    mount_t *ext2mnt = &mounts[1];
+    ext2mnt->dev = si;
+    ext2_type.initmnt(ext2mnt);
 
     void *user_start = (void *)0x200000000;
     void *user_code_phys = pfalloc_one();

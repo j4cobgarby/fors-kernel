@@ -30,15 +30,13 @@ typedef struct store_t {
     struct bc_entry_t *bc_first;
 } store_t;
 
-#define MAX_CACHED_BLOCKS 128
+#define MAX_CACHED_BLOCKS 2
 #define MAX_STORES        8
 #define MAX_STORETYPES    4
 
 extern int bc_cached_count;
 extern store_type_t store_types[MAX_STORETYPES];
 extern store_t stores[MAX_STORES];
-typedef int store_id;
-typedef int storetype_id;
 
 typedef struct bc_entry_t {
     struct bc_entry_t *next;
@@ -50,6 +48,7 @@ typedef struct bc_entry_t {
 storetype_id find_storetype(char name[8]);
 storetype_id register_storetype(store_type_t type);
 store_id register_store(char storetype[8], const char *cfg);
+store_t *get_store_by_id(store_id id);
 
 int bc_get(store_id id, size_t addr, char **buf);
 int bc_put(store_id id, size_t addr);

@@ -168,7 +168,7 @@ void *interrupt_dispatch(register_ctx_x64 *ctx)
         break;
     case SYSCALL_VECTOR:
         if (ctx->rax == 100) {
-            printk("(Task %d dbg) %s", current_proc, (const char *)ctx->rsi);
+            printk("(Task %d dbg) '%s'\n", current_proc, (const char *)ctx->rsi);
         } else {
             sysret = syscall_dispatch(ctx->rax, ctx->rsi, ctx->rbx, ctx->rcx);
             ctx->rax = sysret;

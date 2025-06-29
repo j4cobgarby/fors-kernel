@@ -3,6 +3,7 @@
 #include "fors/types.h"
 #include "forslib/string.h"
 #include "forslib/maths.h"
+#include "fors/printk.h"
 
 enum root_ids {
     ID_ROOT_DIR,
@@ -66,7 +67,10 @@ filesystem_type_t testfs_type = {
 
 int tfs_initmnt(mount_t *mnt)
 {
-    if (mnt->dev >= 0) return -1;
+    if (mnt->dev >= 0) {
+	printk("[test_fs] Cannot mount using any store.");
+	return -1;
+    }
 
     mnt->root_fsnode = ID_ROOT_DIR;
     mnt->fs = &testfs_type;

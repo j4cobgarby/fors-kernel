@@ -5,7 +5,6 @@
 
 typedef long long ssize_t;
 
-typedef long dev_id_t;
 typedef long fsn_id_t;
 typedef long uid_t;
 typedef long gid_t;
@@ -48,11 +47,14 @@ typedef unsigned of_mode_t;
 /* Interface which store types implement */
 typedef struct store_type_t {
     char name[8];
-    size_t block_sz;
+    size_t seg_sz;
     int (*init)(void *dev, const char *cfg);
     int (*rd)(void *dev, size_t addr, char *buf);
     int (*wr)(void *dev, size_t addr, const char *buf);
     size_t (*nblocks)(void *dev);
 } store_type_t;
+
+typedef int store_id;
+typedef int storetype_id;
 
 #endif // INCLUDE_FORS_TYPES_H_

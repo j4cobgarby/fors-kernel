@@ -37,7 +37,7 @@ typedef struct fsnode_t {
 /* Represents a mounted filesystem. Filesystems are mounted in a UNIXey way, at
  * a certain point in the tree. */
 typedef struct mount_t {
-    dev_id_t dev;
+    store_id dev;
     struct filesystem_type_t *fs;
     long root_fsnode;
 } mount_t;
@@ -148,7 +148,7 @@ fd_t vfs_open(pid_t p, const char *full_path, of_mode_t mode);
 int vfs_mkfile(pid_t p, const char *full_path, fsn_perm_t perms);
 int vfs_mkhardlink(pid_t p, const char *full_path, const char *link_to);
 int vfs_mkdir(pid_t p, const char *full_path, fsn_perm_t perms);
-int vfs_mountat(pid_t p, const char *full_path, dev_id_t device);
+int vfs_mountat(pid_t p, const char *full_path, store_id store);
 int vfs_delnode(const char *full_path);
 
 #endif // INCLUDE_FORS_FILESYSTEM_H_

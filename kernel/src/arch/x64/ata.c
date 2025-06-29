@@ -31,7 +31,7 @@ static int st_init(void *dev, const char *cfg)
 
 store_type_t ata_store_type = {
     .name = "atapio",
-    .block_sz = 512,
+    .seg_sz = 512,
     .init = &st_init,
     .rd = &st_rd,
     .wr = &st_wr,
