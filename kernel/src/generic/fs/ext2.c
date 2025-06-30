@@ -47,8 +47,8 @@ int ext2_initmnt(mount_t *mnt)
     printk("[ext2] Mounting filesystem with %d inodes, %d blocks.\n", sb->n_ino, sb->n_blks);
     
     if (sb->vers_major < 1) {
-	printk("[ext2] No support for ext2 version < 1! Aborting.\n");
-	return -1;
+        printk("[ext2] No support for ext2 version < 1! Aborting.\n");
+        return -1;
     }
 #if 0
     printk("== ext2 superblock ==\n");

@@ -93,7 +93,8 @@ $(BUILD)/$(SRC)/%.o: $(SRC)/%.asm
 	@nasm $(NASMFLAGS) $< -o $@
 
 disk.img:
-	qemu-img create -f raw disk.img 2m
+	@qemu-img create -f raw disk.img 2m
+	@mke2fs -b 1024 -L 'root' -t ext2 -d root disk.img || echo "Perhaps you need to symlink /usr/sbin/mke2fs into your PATH."
 
 .PHONE: clean
 clean:
